@@ -12,11 +12,20 @@ export const TimeGrid = ({ hours, startHour, hourHeight }: TimeGridProps) => {
       {/* Time grid lines */}
       <div className="absolute inset-0 z-0">
         {hours.map((hour) => (
-          <div 
-            key={`grid-${hour}`}
-            className="absolute w-full border-t border-gray-200"
-            style={{ top: `${(hour - startHour) * hourHeight}px` }}
-          />
+          <>
+            {/* Full hour line */}
+            <div 
+              key={`grid-${hour}`}
+              className="absolute w-full border-t border-gray-200"
+              style={{ top: `${(hour - startHour) * hourHeight}px` }}
+            />
+            {/* Half hour line */}
+            <div 
+              key={`grid-${hour}-30`}
+              className="absolute w-full border-t border-gray-200 opacity-50"
+              style={{ top: `${(hour - startHour) * hourHeight + hourHeight/2}px` }}
+            />
+          </>
         ))}
       </div>
 
