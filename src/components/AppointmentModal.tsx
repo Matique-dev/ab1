@@ -17,6 +17,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
+import { format } from "date-fns";
 
 interface AppointmentModalProps {
   onAppointmentCreate: (appointment: {
@@ -39,6 +40,7 @@ export const AppointmentModal = ({ onAppointmentCreate, currentDate }: Appointme
     time: "",
     duration: "60",
     isWalkIn: false,
+    selectedDate: format(currentDate, 'yyyy-MM-dd')
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -46,7 +48,7 @@ export const AppointmentModal = ({ onAppointmentCreate, currentDate }: Appointme
     
     // Create a new date object for the appointment
     const [hours, minutes] = formData.time.split(":").map(Number);
-    const appointmentDate = new Date(currentDate);
+    const appointmentDate = new Date(formData.selectedDate);
     appointmentDate.setHours(hours, minutes, 0, 0);
 
     onAppointmentCreate({
@@ -103,17 +105,31 @@ export const AppointmentModal = ({ onAppointmentCreate, currentDate }: Appointme
               </SelectContent>
             </Select>
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="time">Time</Label>
-            <Input
-              id="time"
-              type="time"
-              value={formData.time}
-              onChange={(e) =>
-                setFormData({ ...formData, time: e.target.value })
-              }
-              required
-            />
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="date">Date</Label>
+              <Input
+                id="date"
+                type="date"
+                value={formData.selectedDate}
+                onChange={(e) =>
+                  setFormData({ ...formData, selectedDate: e.target.value })
+                }
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="time">Time</Label>
+              <Input
+                id="time"
+                type="time"
+                value={formData.time}
+                onChange={(e) =>
+                  setFormData({ ...formData, time: e.target.value })
+                }
+                required
+              />
+            </div>
           </div>
           <div className="space-y-2">
             <Label htmlFor="duration">Duration (minutes)</Label>
