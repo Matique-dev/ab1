@@ -15,9 +15,15 @@ interface DayViewProps {
   date: Date;
   appointments: Appointment[];
   onAppointmentEdit: (appointment: Appointment) => void;
+  onAppointmentDelete: (appointmentId: string) => void;
 }
 
-export const DayView = ({ date, appointments, onAppointmentEdit }: DayViewProps) => {
+export const DayView = ({ 
+  date, 
+  appointments, 
+  onAppointmentEdit,
+  onAppointmentDelete 
+}: DayViewProps) => {
   const hours = Array.from({ length: 12 }, (_, i) => i + 9); // 9 AM to 8 PM
   const HOUR_HEIGHT = 100; // Height in pixels for one hour
   const START_HOUR = 9; // 9 AM
@@ -38,6 +44,7 @@ export const DayView = ({ date, appointments, onAppointmentEdit }: DayViewProps)
         hourHeight={HOUR_HEIGHT}
         pageMarginPercent={PAGE_MARGIN_PERCENT}
         onAppointmentEdit={onAppointmentEdit}
+        onAppointmentDelete={onAppointmentDelete}
       />
     </div>
   );
