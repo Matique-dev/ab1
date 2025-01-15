@@ -1,6 +1,7 @@
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { EmployeeManagement } from "@/components/business/EmployeeManagement";
+import { BusinessHours } from "@/components/business/BusinessHours";
 
 const Business = () => {
   return (
@@ -16,13 +17,12 @@ const Business = () => {
         </CardContent>
       </Card>
 
-      {/* Other sections will be added here later */}
-      <Card className="opacity-50">
+      <Card>
         <CardHeader>
           <CardTitle>Business Hours</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-muted-foreground">Coming soon...</p>
+          <BusinessHours />
         </CardContent>
       </Card>
 
