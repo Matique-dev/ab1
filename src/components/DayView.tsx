@@ -1,8 +1,8 @@
 import { TimeGrid } from "./TimeGrid";
 import { AppointmentGrid } from "./AppointmentGrid";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { AppointmentModal } from "./AppointmentModal";
-import { format } from "date-fns";
+import { useDayViewScroll } from "@/hooks/useDayViewScroll";
 
 interface Appointment {
   id: string;
@@ -35,46 +35,7 @@ export const DayView = ({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedTime, setSelectedTime] = useState<string>("");
 
-  useEffect(() => {
-    const container = scrollContainerRef.current;
-    if (!container) return;
-
-    let isScrolling: NodeJS.Timeout;
-    let lastScrollTop = container.scrollTop;
-
-    const handleScroll = () => {
-      // Clear the existing timeout
-      clearTimeout(isScrolling);
-
-      // Set a new timeout
-      isScrolling = setTimeout(() => {
-        const currentScrollTop = container.scrollTop;
-        const halfHourHeight = HOUR_HEIGHT / 2;
-        
-        // Calculate the nearest 30-minute slot
-        const nearestSlot = Math.round(currentScrollTop / halfHourHeight) * halfHourHeight;
-        
-        // Only snap if the scroll has ended and we're not already at a slot
-        if (currentScrollTop !== lastScrollTop && currentScrollTop !== nearestSlot) {
-          container.scrollTo({
-            top: nearestSlot,
-            behavior: 'smooth'
-          });
-        }
-        
-        lastScrollTop = nearestSlot;
-      }, 150); // Adjust this delay as needed
-    };
-
-    container.addEventListener('scroll', handleScroll);
-
-    return () => {
-      if (container) {
-        container.removeEventListener('scroll', handleScroll);
-      }
-      clearTimeout(isScrolling);
-    };
-  }, [HOUR_HEIGHT]);
+  useDayViewScroll(scrollContainerRef, HOUR_HEIGHT);
 
   const handleDoubleClick = (e: React.MouseEvent<HTMLDivElement>) => {
     const container = scrollContainerRef.current;
@@ -101,7 +62,6 @@ export const DayView = ({
       ...appointment,
       id: Math.random().toString(36).substr(2, 9),
     };
-    // Here you would typically call a parent function to add the appointment
     console.log("New appointment created:", newAppointment);
   };
 

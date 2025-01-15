@@ -1,4 +1,3 @@
-import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -6,10 +5,11 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
-import { useToast } from "@/components/ui/use-toast";
-import { AppointmentFormFields } from "./AppointmentFormFields";
 import { useAppointmentForm } from "@/hooks/useAppointmentForm";
+import { useAppointmentModal } from "@/hooks/useAppointmentModal";
+import { AppointmentModalContent } from "./AppointmentModalContent";
 
 interface Appointment {
   id?: string;
@@ -48,8 +48,13 @@ export const AppointmentModal = ({
   const isOpen = controlledIsOpen ?? internalIsOpen;
   const onOpenChange = controlledOnOpenChange ?? setInternalIsOpen;
   
-  const { toast } = useToast();
   const { formData, setFormData } = useAppointmentForm(currentDate, appointment, isOpen);
+  const { handleSubmit, handleDelete } = useAppointmentModal({
+    onAppointmentCreate,
+    onAppointmentEdit,
+    onAppointmentDelete,
+    onOpenChange,
+  });
 
   useEffect(() => {
     if (isOpen && defaultTime) {
@@ -57,48 +62,14 @@ export const AppointmentModal = ({
     }
   }, [isOpen, defaultTime, setFormData]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const onSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Create a new date object for the appointment
-    const [hours, minutes] = formData.time.split(":").map(Number);
-    const appointmentDate = new Date(formData.selectedDate);
-    appointmentDate.setHours(hours, minutes, 0, 0);
-
-    if (appointment?.id && onAppointmentEdit) {
-      // Editing existing appointment
-      onAppointmentEdit({
-        ...formData,
-        id: appointment.id,
-        date: appointmentDate,
-      });
-      toast({
-        title: "Appointment updated",
-        description: "The appointment has been successfully updated.",
-      });
-    } else {
-      // Creating new appointment
-      onAppointmentCreate({
-        ...formData,
-        date: appointmentDate,
-      });
-      toast({
-        title: "Appointment created",
-        description: "The appointment has been successfully scheduled.",
-      });
-    }
-    
-    onOpenChange(false);
+    handleSubmit(formData, appointment);
   };
 
-  const handleDelete = () => {
-    if (appointment?.id && onAppointmentDelete) {
-      onAppointmentDelete(appointment.id);
-      toast({
-        title: "Appointment deleted",
-        description: "The appointment has been successfully removed.",
-      });
-      onOpenChange(false);
+  const onDelete = () => {
+    if (appointment?.id) {
+      handleDelete(appointment.id);
     }
   };
 
@@ -117,26 +88,13 @@ export const AppointmentModal = ({
             {appointment ? "Edit Appointment" : "Schedule Appointment"}
           </DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4 mt-4">
-          <AppointmentFormFields
-            formData={formData}
-            setFormData={setFormData}
-          />
-          <div className="flex gap-2">
-            <Button type="submit" className="flex-1">
-              {appointment ? "Update Appointment" : "Create Appointment"}
-            </Button>
-            {appointment && onAppointmentDelete && (
-              <Button 
-                type="button" 
-                variant="destructive"
-                onClick={handleDelete}
-              >
-                Delete
-              </Button>
-            )}
-          </div>
-        </form>
+        <AppointmentModalContent
+          formData={formData}
+          setFormData={setFormData}
+          onSubmit={onSubmit}
+          onDelete={appointment ? onDelete : undefined}
+          appointment={appointment}
+        />
       </DialogContent>
     </Dialog>
   );
