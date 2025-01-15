@@ -45,29 +45,9 @@ export const AppointmentGrid = ({
     return hours * 60 + minutes;
   };
 
-  const doesAppointmentsOverlap = (apt1: Appointment, apt2: Appointment) => {
-    const start1 = getTimeInMinutes(apt1.time);
-    const end1 = start1 + parseInt(apt1.duration);
-    const start2 = getTimeInMinutes(apt2.time);
-    const end2 = start2 + parseInt(apt2.duration);
-
-    return (start1 < end2 && end1 > start2);
-  };
-
-  const removeDuplicateAppointments = (appointments: Appointment[]) => {
-    return appointments.filter((apt, index, self) =>
-      index === self.findIndex((a) => (
-        a.id === apt.id
-      ))
-    );
-  };
-
   const calculateAppointmentColumns = (appointments: Appointment[]) => {
-    // Remove any duplicate appointments first
-    const uniqueAppointments = removeDuplicateAppointments(appointments);
-    
-    // Sort appointments by start time
-    const sortedAppointments = [...uniqueAppointments].sort((a, b) => {
+    // Sort appointments by start time, then by duration (longer appointments first)
+    const sortedAppointments = [...appointments].sort((a, b) => {
       const startDiff = getTimeInMinutes(a.time) - getTimeInMinutes(b.time);
       if (startDiff === 0) {
         return parseInt(b.duration) - parseInt(a.duration); // Longer duration first
@@ -78,63 +58,65 @@ export const AppointmentGrid = ({
     const columns: { [key: string]: number } = {};
     const maxColumns: { [key: string]: number } = {};
 
-    // For each appointment, find all other appointments that overlap with it
-    sortedAppointments.forEach((apt) => {
-      const overlappingApts = sortedAppointments.filter(
-        (other) => other.id !== apt.id && doesAppointmentsOverlap(apt, other)
-      );
+    // Create time slots for collision detection
+    const timeSlots: { [key: number]: Set<number> } = {};
 
-      // Find the first available column that doesn't conflict with overlapping appointments
+    sortedAppointments.forEach((appointment) => {
+      const startTime = getTimeInMinutes(appointment.time);
+      const endTime = startTime + parseInt(appointment.duration);
+
+      // Find the first available column by checking all time slots
       let column = 0;
-      while (true) {
-        const isColumnAvailable = !overlappingApts.some(
-          (other) => columns[other.id] === column
-        );
-        if (isColumnAvailable) break;
-        column++;
+      let columnFound = false;
+
+      while (!columnFound) {
+        columnFound = true;
+        // Check each minute in the appointment duration
+        for (let time = startTime; time < endTime; time++) {
+          if (!timeSlots[time]) {
+            timeSlots[time] = new Set();
+          }
+          if (timeSlots[time].has(column)) {
+            columnFound = false;
+            column++;
+            break;
+          }
+        }
       }
 
-      columns[apt.id] = column;
+      // Reserve all time slots for this appointment
+      for (let time = startTime; time < endTime; time++) {
+        if (!timeSlots[time]) {
+          timeSlots[time] = new Set();
+        }
+        timeSlots[time].add(column);
 
-      // Update max columns for the time range of this appointment
-      const startHour = Math.floor(getTimeInMinutes(apt.time) / 60);
-      const endHour = Math.ceil(
-        (getTimeInMinutes(apt.time) + parseInt(apt.duration)) / 60
-      );
-      
-      for (let hour = startHour; hour <= endHour; hour++) {
+        // Update max columns for each minute
+        const hour = Math.floor(time / 60);
         maxColumns[hour] = Math.max(maxColumns[hour] || 0, column);
       }
+
+      columns[appointment.id] = column;
     });
 
     return { columns, maxColumns };
   };
 
-  const calculateAppointmentPosition = (
-    appointment: Appointment,
-    columnInfo: ReturnType<typeof calculateAppointmentColumns>
-  ) => {
+  const calculateAppointmentPosition = (appointment: Appointment, columnInfo: ReturnType<typeof calculateAppointmentColumns>) => {
     const startTime = getTimeInMinutes(appointment.time);
     const duration = parseInt(appointment.duration);
-
+    
     const topPosition = ((startTime - startHour * 60) / 60) * hourHeight;
     const height = (duration / 60) * hourHeight;
 
-    const startHour = Math.floor(startTime / 60);
-    const endHour = Math.ceil((startTime + duration) / 60);
-    
-    // Find the maximum number of columns needed across all hours this appointment spans
-    let maxColumnCount = 0;
-    for (let hour = startHour; hour <= endHour; hour++) {
-      maxColumnCount = Math.max(maxColumnCount, (columnInfo.maxColumns[hour] || 0) + 1);
-    }
-
-    const columnWidth = (100 - pageMarginPercent * 2) / Math.max(maxColumnCount, 1);
+    const hour = Math.floor(startTime / 60);
+    const totalColumns = columnInfo.maxColumns[hour] + 1;
+    const columnWidth = (100 - (pageMarginPercent * 2)) / Math.max(totalColumns, 1);
     const column = columnInfo.columns[appointment.id];
-
+    
     const width = `${columnWidth}%`;
-    const left = `${column * columnWidth + pageMarginPercent}%`;
-
+    const left = `${(column * columnWidth) + pageMarginPercent}%`;
+    
     return { top: topPosition, height, width, left };
   };
 
@@ -143,12 +125,9 @@ export const AppointmentGrid = ({
       {hours.map((hour) => {
         const hourAppointments = appointments.filter((apt) => {
           if (!isSameDay(apt.date, date)) return false;
-          const aptStartTime = getTimeInMinutes(apt.time);
-          const aptEndTime = aptStartTime + parseInt(apt.duration);
-          const hourStartMinutes = hour * 60;
-          const hourEndMinutes = (hour + 1) * 60;
-          
-          return aptStartTime < hourEndMinutes && aptEndTime > hourStartMinutes;
+          const aptStartHour = Math.floor(getTimeInMinutes(apt.time) / 60);
+          const aptEndHour = Math.ceil((getTimeInMinutes(apt.time) + parseInt(apt.duration)) / 60);
+          return aptStartHour <= hour && aptEndHour > hour;
         });
 
         const columnInfo = calculateAppointmentColumns(hourAppointments);
