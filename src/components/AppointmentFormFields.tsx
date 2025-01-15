@@ -1,0 +1,120 @@
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
+interface FormData {
+  title: string;
+  stylist: string;
+  time: string;
+  duration: string;
+  isWalkIn: boolean;
+  selectedDate: string;
+}
+
+interface AppointmentFormFieldsProps {
+  formData: FormData;
+  setFormData: (data: FormData) => void;
+}
+
+export const AppointmentFormFields = ({
+  formData,
+  setFormData,
+}: AppointmentFormFieldsProps) => {
+  return (
+    <>
+      <div className="space-y-2">
+        <Label htmlFor="title">Client Name</Label>
+        <Input
+          id="title"
+          value={formData.title}
+          onChange={(e) =>
+            setFormData({ ...formData, title: e.target.value })
+          }
+          required
+        />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="stylist">Stylist</Label>
+        <Select
+          value={formData.stylist}
+          onValueChange={(value) =>
+            setFormData({ ...formData, stylist: value })
+          }
+          required
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Select stylist" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="john">John</SelectItem>
+            <SelectItem value="josh">Josh</SelectItem>
+            <SelectItem value="rebecca">Rebecca</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="date">Date</Label>
+          <Input
+            id="date"
+            type="date"
+            value={formData.selectedDate}
+            onChange={(e) =>
+              setFormData({ ...formData, selectedDate: e.target.value })
+            }
+            required
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="time">Time</Label>
+          <Input
+            id="time"
+            type="time"
+            value={formData.time}
+            onChange={(e) =>
+              setFormData({ ...formData, time: e.target.value })
+            }
+            required
+          />
+        </div>
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="duration">Duration (minutes)</Label>
+        <Select
+          value={formData.duration}
+          onValueChange={(value) =>
+            setFormData({ ...formData, duration: value })
+          }
+        >
+          <SelectTrigger>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="30">30 minutes</SelectItem>
+            <SelectItem value="60">60 minutes</SelectItem>
+            <SelectItem value="90">90 minutes</SelectItem>
+            <SelectItem value="120">120 minutes</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+      <div className="flex items-center space-x-2">
+        <input
+          type="checkbox"
+          id="walkIn"
+          checked={formData.isWalkIn}
+          onChange={(e) =>
+            setFormData({ ...formData, isWalkIn: e.target.checked })
+          }
+          className="rounded border-gray-300"
+        />
+        <Label htmlFor="walkIn">Walk-in appointment</Label>
+      </div>
+    </>
+  );
+};
