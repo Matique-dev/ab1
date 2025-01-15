@@ -25,10 +25,12 @@ interface AppointmentModalProps {
     time: string;
     duration: string;
     isWalkIn: boolean;
+    date: Date;
   }) => void;
+  currentDate: Date;
 }
 
-export const AppointmentModal = ({ onAppointmentCreate }: AppointmentModalProps) => {
+export const AppointmentModal = ({ onAppointmentCreate, currentDate }: AppointmentModalProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const { toast } = useToast();
   const [formData, setFormData] = useState({
@@ -41,7 +43,17 @@ export const AppointmentModal = ({ onAppointmentCreate }: AppointmentModalProps)
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onAppointmentCreate(formData);
+    
+    // Create a new date object for the appointment
+    const [hours, minutes] = formData.time.split(":").map(Number);
+    const appointmentDate = new Date(currentDate);
+    appointmentDate.setHours(hours, minutes, 0, 0);
+
+    onAppointmentCreate({
+      ...formData,
+      date: appointmentDate,
+    });
+    
     setIsOpen(false);
     toast({
       title: "Appointment created",

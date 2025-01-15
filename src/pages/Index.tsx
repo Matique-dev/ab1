@@ -13,6 +13,7 @@ interface Appointment {
   time: string;
   duration: string;
   isWalkIn: boolean;
+  date: Date;
 }
 
 const Index = () => {
@@ -36,7 +37,10 @@ const Index = () => {
             <h1 className="text-2xl font-bold bg-gradient-to-r from-salon-pink to-salon-peach bg-clip-text text-transparent">
               Salon Calendar
             </h1>
-            <AppointmentModal onAppointmentCreate={handleAppointmentCreate} />
+            <AppointmentModal 
+              onAppointmentCreate={handleAppointmentCreate} 
+              currentDate={currentDate}
+            />
           </div>
           <CalendarHeader
             currentDate={currentDate}
