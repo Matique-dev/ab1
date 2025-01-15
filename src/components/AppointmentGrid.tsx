@@ -40,47 +40,55 @@ export const AppointmentGrid = ({
     return colors[stylist.toLowerCase()] || "bg-gray-100 border-gray-300";
   };
 
+  const getTimeInMinutes = (time: string) => {
+    const [hours, minutes] = time.split(":").map(Number);
+    return hours * 60 + minutes;
+  };
+
   const calculateAppointmentColumns = (appointments: Appointment[]) => {
+    // Sort appointments by start time
     const sortedAppointments = [...appointments].sort((a, b) => {
-      const [aHours, aMinutes] = a.time.split(":").map(Number);
-      const [bHours, bMinutes] = b.time.split(":").map(Number);
-      return aHours * 60 + aMinutes - (bHours * 60 + bMinutes);
+      return getTimeInMinutes(a.time) - getTimeInMinutes(b.time);
     });
 
     const columns: { [key: string]: number } = {};
     const maxColumn: { [key: string]: number } = {};
 
+    // For each appointment, find all other appointments that overlap with it
     sortedAppointments.forEach((appointment) => {
-      const [hours, minutes] = appointment.time.split(":").map(Number);
-      const startTime = hours * 60 + minutes;
+      const startTime = getTimeInMinutes(appointment.time);
       const endTime = startTime + parseInt(appointment.duration);
 
-      let column = 0;
-      while (true) {
-        let canUseColumn = true;
-        
-        for (const [id, col] of Object.entries(columns)) {
-          if (col === column) {
-            const existingApt = sortedAppointments.find(a => a.id === id);
-            if (existingApt) {
-              const [existingHours, existingMinutes] = existingApt.time.split(":").map(Number);
-              const existingStart = existingHours * 60 + existingMinutes;
-              const existingEnd = existingStart + parseInt(existingApt.duration);
+      // Find all appointments that overlap with the current one
+      const overlappingAppointments = sortedAppointments.filter(other => {
+        if (other.id === appointment.id) return false;
+        const otherStart = getTimeInMinutes(other.time);
+        const otherEnd = otherStart + parseInt(other.duration);
+        return (startTime < otherEnd && endTime > otherStart);
+      });
 
-              if (startTime < existingEnd && endTime > existingStart) {
-                canUseColumn = false;
-                break;
-              }
-            }
+      // Find the first available column that doesn't conflict with overlapping appointments
+      let column = 0;
+      let foundColumn = false;
+      while (!foundColumn) {
+        foundColumn = true;
+        for (const other of overlappingAppointments) {
+          if (columns[other.id] === column) {
+            foundColumn = false;
+            column++;
+            break;
           }
         }
-
-        if (canUseColumn) break;
-        column++;
       }
 
       columns[appointment.id] = column;
-      maxColumn[hours] = Math.max(maxColumn[hours] || 0, column);
+
+      // Update max column for each hour this appointment spans
+      const startHour = Math.floor(startTime / 60);
+      const endHour = Math.ceil(endTime / 60);
+      for (let hour = startHour; hour < endHour; hour++) {
+        maxColumn[hour] = Math.max(maxColumn[hour] || 0, column);
+      }
     });
 
     return { columns, maxColumns: maxColumn };
