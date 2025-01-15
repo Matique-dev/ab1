@@ -26,38 +26,61 @@ export const DayView = ({ date, appointments }: DayViewProps) => {
     return colors[stylist] || "bg-gray-100 border-gray-300";
   };
 
+  // Function to calculate horizontal position based on overlapping appointments
+  const calculateAppointmentPosition = (appointment: Appointment, hourAppointments: Appointment[]) => {
+    const overlappingAppointments = hourAppointments.filter(apt => apt.stylist !== appointment.stylist);
+    const stylistIndex = hourAppointments.findIndex(apt => apt.stylist === appointment.stylist);
+    const totalOverlapping = overlappingAppointments.length + 1;
+    
+    // Calculate width and left position
+    const width = `${100 / Math.max(totalOverlapping, 1)}%`;
+    const left = `${(stylistIndex * 100) / Math.max(totalOverlapping, 1)}%`;
+    
+    return { width, left };
+  };
+
   return (
     <div className="flex flex-col h-[calc(100vh-12rem)] overflow-y-auto">
-      {hours.map((hour) => (
-        <div key={hour} className="relative min-h-[100px] border-b">
-          <div className="absolute -top-3 left-2 text-sm text-gray-500">
-            {hour % 12 || 12}:00 {hour >= 12 ? "PM" : "AM"}
+      {hours.map((hour) => {
+        const hourAppointments = appointments.filter((apt) => {
+          const [aptHour] = apt.time.split(":");
+          return parseInt(aptHour) === hour;
+        });
+
+        return (
+          <div key={hour} className="relative min-h-[100px] border-b">
+            <div className="absolute -top-3 left-2 text-sm text-gray-500">
+              {hour % 12 || 12}:00 {hour >= 12 ? "PM" : "AM"}
+            </div>
+            <div className="relative ml-16 mr-4 h-full">
+              {hourAppointments.map((apt) => {
+                const { width, left } = calculateAppointmentPosition(apt, hourAppointments);
+                
+                return (
+                  <div
+                    key={apt.id}
+                    className={`absolute p-2 m-1 rounded border ${getStylistColor(
+                      apt.stylist
+                    )} ${apt.isWalkIn ? "border-dashed" : ""}`}
+                    style={{
+                      top: "0.5rem",
+                      left,
+                      width,
+                      minHeight: "3rem",
+                    }}
+                  >
+                    <div className="font-medium truncate">{apt.title}</div>
+                    <div className="text-sm text-gray-600 truncate">
+                      {apt.stylist.charAt(0).toUpperCase() + apt.stylist.slice(1)} •{" "}
+                      {apt.duration} min
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
-          {appointments
-            .filter((apt) => {
-              const [aptHour] = apt.time.split(":");
-              return parseInt(aptHour) === hour;
-            })
-            .map((apt) => (
-              <div
-                key={apt.id}
-                className={`absolute left-16 right-4 p-2 m-1 rounded border ${getStylistColor(
-                  apt.stylist
-                )} ${apt.isWalkIn ? "border-dashed" : ""}`}
-                style={{
-                  top: "0.5rem",
-                  minHeight: "3rem",
-                }}
-              >
-                <div className="font-medium">{apt.title}</div>
-                <div className="text-sm text-gray-600">
-                  {apt.stylist.charAt(0).toUpperCase() + apt.stylist.slice(1)} •{" "}
-                  {apt.duration} min
-                </div>
-              </div>
-            ))}
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 };
