@@ -32,10 +32,8 @@ export const DayView = ({ date, appointments, onAppointmentEdit }: DayViewProps)
     return colors[stylist.toLowerCase()] || "bg-gray-100 border-gray-300";
   };
 
-  // Function to calculate overlapping appointments and assign columns
   const calculateAppointmentColumns = (appointments: Appointment[]) => {
     const sortedAppointments = [...appointments].sort((a, b) => {
-      // Sort by start time
       const [aHours, aMinutes] = a.time.split(":").map(Number);
       const [bHours, bMinutes] = b.time.split(":").map(Number);
       return aHours * 60 + aMinutes - (bHours * 60 + bMinutes);
@@ -49,12 +47,10 @@ export const DayView = ({ date, appointments, onAppointmentEdit }: DayViewProps)
       const startTime = hours * 60 + minutes;
       const endTime = startTime + parseInt(appointment.duration);
 
-      // Find the first available column
       let column = 0;
       while (true) {
         let canUseColumn = true;
         
-        // Check for overlaps in this column
         for (const [id, col] of Object.entries(columns)) {
           if (col === column) {
             const existingApt = sortedAppointments.find(a => a.id === id);
@@ -71,9 +67,7 @@ export const DayView = ({ date, appointments, onAppointmentEdit }: DayViewProps)
           }
         }
 
-        if (canUseColumn) {
-          break;
-        }
+        if (canUseColumn) break;
         column++;
       }
 
@@ -85,7 +79,6 @@ export const DayView = ({ date, appointments, onAppointmentEdit }: DayViewProps)
   };
 
   const calculateAppointmentPosition = (appointment: Appointment, columnInfo: ReturnType<typeof calculateAppointmentColumns>) => {
-    // Parse the time and calculate position
     const [hours, minutes] = appointment.time.split(":").map(Number);
     const duration = parseInt(appointment.duration);
     
@@ -99,17 +92,19 @@ export const DayView = ({ date, appointments, onAppointmentEdit }: DayViewProps)
     // Calculate width and left position based on column assignment
     const column = columnInfo.columns[appointment.id];
     const totalColumns = columnInfo.maxColumns[hours] + 1;
-    const width = `${100 / Math.max(totalColumns, 1)}%`;
-    const left = `${(column * 100) / Math.max(totalColumns, 1)}%`;
+    const columnWidth = 100 / Math.max(totalColumns, 1);
+    const width = `${columnWidth - 2}%`; // Subtract 2% for margins
+    const left = `${(column * columnWidth) + 1}%`; // Add 1% margin from the left
     
     return { top: topPosition, height, width, left };
   };
 
   return (
     <div className="flex flex-col h-[calc(100vh-12rem)] overflow-y-auto relative">
+      <div className="absolute top-0 left-0 w-16 h-full bg-white z-10" /> {/* Background for time labels */}
       {hours.map((hour) => (
         <div key={hour} className="relative" style={{ height: `${HOUR_HEIGHT}px` }}>
-          <div className="absolute -top-3 left-2 text-sm text-gray-500">
+          <div className="absolute -top-3 left-2 text-sm text-gray-500 z-20 bg-white pr-2">
             {hour % 12 || 12}:00 {hour >= 12 ? "PM" : "AM"}
           </div>
           <div className="absolute inset-0 border-t border-gray-200" />
@@ -138,7 +133,7 @@ export const DayView = ({ date, appointments, onAppointmentEdit }: DayViewProps)
                     onAppointmentCreate={() => {}}
                     trigger={
                       <div
-                        className={`absolute p-2 rounded border cursor-pointer hover:opacity-80 ${getStylistColor(
+                        className={`absolute p-2 rounded border cursor-pointer hover:opacity-80 transition-opacity ${getStylistColor(
                           apt.stylist
                         )} ${apt.isWalkIn ? "border-dashed" : ""}`}
                         style={{
