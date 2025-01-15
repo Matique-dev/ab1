@@ -2,6 +2,7 @@ import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { EmployeeManagement } from "@/components/business/EmployeeManagement";
 import { BusinessHours } from "@/components/business/BusinessHours";
+import { ExceptionDates } from "@/components/business/ExceptionDates";
 
 const Business = () => {
   return (
