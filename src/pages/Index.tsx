@@ -2,6 +2,7 @@ import { useState } from "react";
 import { CalendarHeader } from "@/components/CalendarHeader";
 import { AppointmentModal } from "@/components/AppointmentModal";
 import { DayView } from "@/components/DayView";
+import { fr } from 'date-fns/locale';
 
 interface Appointment {
   id: string;
@@ -40,11 +41,11 @@ const Index = () => {
             view={view}
             onViewChange={setView}
             onDateChange={setCurrentDate}
+            locale={fr}
           />
           {view === "day" && (
             <DayView date={currentDate} appointments={appointments} />
           )}
-          {/* Week and Month views will be implemented in future iterations */}
           {view !== "day" && (
             <div className="p-12 text-center text-gray-500">
               {view.charAt(0).toUpperCase() + view.slice(1)} view coming soon!
