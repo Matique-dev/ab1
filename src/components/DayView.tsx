@@ -93,70 +93,89 @@ export const DayView = ({ date, appointments, onAppointmentEdit }: DayViewProps)
     const column = columnInfo.columns[appointment.id];
     const totalColumns = columnInfo.maxColumns[hours] + 1;
     const columnWidth = 100 / Math.max(totalColumns, 1);
-    const width = `${columnWidth - 2}%`; // Subtract 2% for margins
-    const left = `${(column * columnWidth) + 1}%`; // Add 1% margin from the left
+    const width = `${columnWidth - 4}%`; // Subtract 4% for margins
+    const left = `${(column * columnWidth) + 2}%`; // Add 2% margin from the left
     
     return { top: topPosition, height, width, left };
   };
 
   return (
     <div className="flex flex-col h-[calc(100vh-12rem)] overflow-y-auto relative">
-      <div className="absolute top-0 left-0 w-16 h-full bg-white z-10" /> {/* Background for time labels */}
-      {hours.map((hour) => (
-        <div key={hour} className="relative" style={{ height: `${HOUR_HEIGHT}px` }}>
-          <div className="absolute -top-3 left-2 text-sm text-gray-500 z-20 bg-white pr-2">
+      {/* Time scale background */}
+      <div className="absolute top-0 left-0 w-16 h-full bg-white z-20" />
+      
+      {/* Time grid lines - placed behind appointments */}
+      <div className="absolute inset-0 z-0">
+        {hours.map((hour) => (
+          <div 
+            key={`grid-${hour}`}
+            className="absolute w-full border-t border-gray-200"
+            style={{ top: `${(hour - START_HOUR) * HOUR_HEIGHT}px` }}
+          />
+        ))}
+      </div>
+
+      {/* Time labels */}
+      <div className="absolute top-0 left-0 w-16 z-30">
+        {hours.map((hour) => (
+          <div
+            key={`label-${hour}`}
+            className="absolute -top-3 left-2 text-sm text-gray-500 bg-white pr-2"
+            style={{ top: `${(hour - START_HOUR) * HOUR_HEIGHT}px` }}
+          >
             {hour % 12 || 12}:00 {hour >= 12 ? "PM" : "AM"}
           </div>
-          <div className="absolute inset-0 border-t border-gray-200" />
-          <div className="relative ml-16 mr-4 h-full">
-            {(() => {
-              const hourAppointments = appointments.filter((apt) => {
-                if (!isSameDay(apt.date, date)) return false;
-                const [aptHour] = apt.time.split(":").map(Number);
-                return aptHour === hour;
-              });
+        ))}
+      </div>
 
-              const columnInfo = calculateAppointmentColumns(hourAppointments);
+      {/* Appointments container */}
+      <div className="relative ml-16 mr-4 h-full z-10">
+        {hours.map((hour) => {
+          const hourAppointments = appointments.filter((apt) => {
+            if (!isSameDay(apt.date, date)) return false;
+            const [aptHour] = apt.time.split(":").map(Number);
+            return aptHour === hour;
+          });
 
-              return hourAppointments.map((apt) => {
-                const { top, height, width, left } = calculateAppointmentPosition(
-                  apt,
-                  columnInfo
-                );
+          const columnInfo = calculateAppointmentColumns(hourAppointments);
 
-                return (
-                  <AppointmentModal
-                    key={apt.id}
-                    currentDate={date}
-                    appointment={apt}
-                    onAppointmentEdit={onAppointmentEdit}
-                    onAppointmentCreate={() => {}}
-                    trigger={
-                      <div
-                        className={`absolute p-2 rounded border cursor-pointer hover:opacity-80 transition-opacity ${getStylistColor(
-                          apt.stylist
-                        )} ${apt.isWalkIn ? "border-dashed" : ""}`}
-                        style={{
-                          top: `${top}px`,
-                          height: `${height}px`,
-                          width,
-                          left,
-                        }}
-                      >
-                        <div className="font-medium truncate">{apt.title}</div>
-                        <div className="text-sm text-gray-600 truncate">
-                          {apt.stylist.charAt(0).toUpperCase() + apt.stylist.slice(1)} •{" "}
-                          {apt.duration} min
-                        </div>
-                      </div>
-                    }
-                  />
-                );
-              });
-            })()}
-          </div>
-        </div>
-      ))}
+          return hourAppointments.map((apt) => {
+            const { top, height, width, left } = calculateAppointmentPosition(
+              apt,
+              columnInfo
+            );
+
+            return (
+              <AppointmentModal
+                key={apt.id}
+                currentDate={date}
+                appointment={apt}
+                onAppointmentEdit={onAppointmentEdit}
+                onAppointmentCreate={() => {}}
+                trigger={
+                  <div
+                    className={`absolute p-2 rounded border cursor-pointer hover:opacity-80 transition-opacity ${getStylistColor(
+                      apt.stylist
+                    )} ${apt.isWalkIn ? "border-dashed" : ""}`}
+                    style={{
+                      top: `${top}px`,
+                      height: `${height}px`,
+                      width,
+                      left,
+                    }}
+                  >
+                    <div className="font-medium truncate">{apt.title}</div>
+                    <div className="text-sm text-gray-600 truncate">
+                      {apt.stylist.charAt(0).toUpperCase() + apt.stylist.slice(1)} •{" "}
+                      {apt.duration} min
+                    </div>
+                  </div>
+                }
+              />
+            );
+          });
+        })}
+      </div>
     </div>
   );
 };
