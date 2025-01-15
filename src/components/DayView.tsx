@@ -86,15 +86,15 @@ export const DayView = ({ date, appointments, onAppointmentEdit }: DayViewProps)
     const timeInMinutes = (hours - START_HOUR) * 60 + minutes;
     const topPosition = (timeInMinutes / 60) * HOUR_HEIGHT;
     
-    // Calculate height based on duration
+    // Calculate height based on duration (minutes to pixels)
     const height = (duration / 60) * HOUR_HEIGHT;
 
     // Calculate width and left position based on column assignment
     const column = columnInfo.columns[appointment.id];
     const totalColumns = columnInfo.maxColumns[hours] + 1;
-    const columnWidth = 100 / Math.max(totalColumns, 1);
-    const width = `${columnWidth - 4}%`; // Subtract 4% for margins
-    const left = `${(column * columnWidth) + 2}%`; // Add 2% margin from the left
+    const columnWidth = 90 / Math.max(totalColumns, 1); // Reduced from 100 to 90 to add margins
+    const width = `${columnWidth}%`;
+    const left = `${(column * columnWidth) + 5}%`; // Added 5% margin from the left
     
     return { top: topPosition, height, width, left };
   };
