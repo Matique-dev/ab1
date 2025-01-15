@@ -54,21 +54,32 @@ export const AppointmentGrid = ({
     return start1 < end2 && end1 > start2;
   };
 
-  const removeDuplicateAppointments = (appointments: Appointment[]) => {
-    const seen = new Set<string>();
-    return appointments.filter(apt => {
-      if (seen.has(apt.id)) {
-        return false;
-      }
-      seen.add(apt.id);
-      return true;
-    });
+  const getOverlappingGroup = (appointment: Appointment, allAppointments: Appointment[]) => {
+    const group = new Set<Appointment>([appointment]);
+    
+    let prevSize = 0;
+    while (prevSize !== group.size) {
+      prevSize = group.size;
+      allAppointments.forEach(apt => {
+        if (!group.has(apt)) {
+          for (const groupApt of group) {
+            if (doesAppointmentsOverlap(apt, groupApt)) {
+              group.add(apt);
+              break;
+            }
+          }
+        }
+      });
+    }
+    
+    return Array.from(group);
   };
 
   const calculateAppointmentColumns = (appointments: Appointment[]) => {
-    const uniqueAppointments = removeDuplicateAppointments(appointments);
-    
-    const sortedAppointments = [...uniqueAppointments].sort((a, b) => {
+    if (appointments.length === 0) return { columns: {}, maxColumns: {} };
+
+    // Sort appointments by start time and then by duration
+    const sortedAppointments = [...appointments].sort((a, b) => {
       const startDiff = getTimeInMinutes(a.time) - getTimeInMinutes(b.time);
       if (startDiff === 0) {
         return parseInt(b.duration) - parseInt(a.duration);
@@ -79,29 +90,42 @@ export const AppointmentGrid = ({
     const columns: { [key: string]: number } = {};
     const maxColumns: { [key: string]: number } = {};
 
-    sortedAppointments.forEach((apt) => {
-      const overlappingApts = sortedAppointments.filter(
-        (other) => other.id !== apt.id && doesAppointmentsOverlap(apt, other)
-      );
+    // Find all overlapping groups
+    const processedAppointments = new Set<string>();
+    sortedAppointments.forEach(apt => {
+      if (!processedAppointments.has(apt.id)) {
+        const overlappingGroup = getOverlappingGroup(apt, sortedAppointments);
+        const groupColumns: { [key: string]: number } = {};
+        let maxColumn = 0;
 
-      let column = 0;
-      while (true) {
-        const isColumnAvailable = !overlappingApts.some(
-          (other) => columns[other.id] === column
-        );
-        if (isColumnAvailable) break;
-        column++;
-      }
+        overlappingGroup.forEach(groupApt => {
+          let column = 0;
+          while (true) {
+            const isColumnAvailable = !overlappingGroup.some(
+              other => 
+                groupColumns[other.id] === column && 
+                doesAppointmentsOverlap(groupApt, other)
+            );
+            if (isColumnAvailable) break;
+            column++;
+          }
+          groupColumns[groupApt.id] = column;
+          maxColumn = Math.max(maxColumn, column);
+          processedAppointments.add(groupApt.id);
+        });
 
-      columns[apt.id] = column;
-
-      const startMinutes = getTimeInMinutes(apt.time);
-      const endMinutes = startMinutes + parseInt(apt.duration);
-      const startHourLocal = Math.floor(startMinutes / 60);
-      const endHourLocal = Math.ceil(endMinutes / 60);
-      
-      for (let hour = startHourLocal; hour <= endHourLocal; hour++) {
-        maxColumns[hour] = Math.max(maxColumns[hour] || 0, column);
+        // Update columns and maxColumns
+        Object.assign(columns, groupColumns);
+        overlappingGroup.forEach(groupApt => {
+          const startMinutes = getTimeInMinutes(groupApt.time);
+          const endMinutes = startMinutes + parseInt(groupApt.duration);
+          const startHourLocal = Math.floor(startMinutes / 60);
+          const endHourLocal = Math.ceil(endMinutes / 60);
+          
+          for (let hour = startHourLocal; hour <= endHourLocal; hour++) {
+            maxColumns[hour] = Math.max(maxColumns[hour] || 0, maxColumn);
+          }
+        });
       }
     });
 
@@ -126,7 +150,7 @@ export const AppointmentGrid = ({
       maxColumnCount = Math.max(maxColumnCount, (columnInfo.maxColumns[hour] || 0) + 1);
     }
 
-    const columnWidth = (100 - pageMarginPercent * 2) / Math.max(maxColumnCount, 1);
+    const columnWidth = (100 - pageMarginPercent * 2) / maxColumnCount;
     const column = columnInfo.columns[appointment.id];
 
     const width = `${columnWidth}%`;
@@ -135,55 +159,34 @@ export const AppointmentGrid = ({
     return { top: topPosition, height, width, left };
   };
 
-  // Create a Set to track processed appointments
-  const processedAppointments = new Set<string>();
+  // Filter appointments for the current day
+  const dayAppointments = appointments.filter(apt => isSameDay(apt.date, date));
+  
+  // Calculate columns for all appointments at once
+  const columnInfo = calculateAppointmentColumns(dayAppointments);
 
   return (
     <div className="relative ml-16 mr-4 h-full z-10">
-      {hours.map((hour) => {
-        const hourAppointments = appointments.filter((apt) => {
-          // Skip if we've already processed this appointment
-          if (processedAppointments.has(apt.id)) return false;
-          
-          if (!isSameDay(apt.date, date)) return false;
-          const aptStartMinutes = getTimeInMinutes(apt.time);
-          const aptEndMinutes = aptStartMinutes + parseInt(apt.duration);
-          const hourStartMinutes = hour * 60;
-          const hourEndMinutes = (hour + 1) * 60;
-          
-          const isInHourRange = aptStartMinutes < hourEndMinutes && aptEndMinutes > hourStartMinutes;
-          
-          // If the appointment is in range, mark it as processed
-          if (isInHourRange) {
-            processedAppointments.add(apt.id);
-          }
-          
-          return isInHourRange;
-        });
+      {dayAppointments.map((apt) => {
+        const position = calculateAppointmentPosition(apt, columnInfo);
 
-        const columnInfo = calculateAppointmentColumns(hourAppointments);
-
-        return hourAppointments.map((apt) => {
-          const position = calculateAppointmentPosition(apt, columnInfo);
-
-          return (
-            <AppointmentModal
-              key={apt.id}
-              currentDate={date}
-              appointment={apt}
-              onAppointmentEdit={onAppointmentEdit}
-              onAppointmentCreate={() => {}}
-              trigger={
-                <AppointmentCard
-                  appointment={apt}
-                  position={position}
-                  colorClass={getStylistColor(apt.stylist)}
-                  onClick={() => {}}
-                />
-              }
-            />
-          );
-        });
+        return (
+          <AppointmentModal
+            key={apt.id}
+            currentDate={date}
+            appointment={apt}
+            onAppointmentEdit={onAppointmentEdit}
+            onAppointmentCreate={() => {}}
+            trigger={
+              <AppointmentCard
+                appointment={apt}
+                position={position}
+                colorClass={getStylistColor(apt.stylist)}
+                onClick={() => {}}
+              />
+            }
+          />
+        );
       })}
     </div>
   );
