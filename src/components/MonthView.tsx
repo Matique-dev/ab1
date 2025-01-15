@@ -39,8 +39,18 @@ export const MonthView = ({ date, appointments }: MonthViewProps) => {
       return appointmentDate;
     } catch (e) {
       console.error("Error parsing date:", e);
-      return new Date(); // Fallback to current date if parsing fails
+      return null; // Return null instead of fallback date to skip invalid dates
     }
+  };
+
+  const sortAppointmentsByTime = (a: typeof appointments[0], b: typeof appointments[0]) => {
+    const [aHours, aMinutes] = a.time.split(":").map(Number);
+    const [bHours, bMinutes] = b.time.split(":").map(Number);
+    
+    if (aHours === bHours) {
+      return aMinutes - bMinutes;
+    }
+    return aHours - bHours;
   };
 
   return (
@@ -51,10 +61,12 @@ export const MonthView = ({ date, appointments }: MonthViewProps) => {
         </div>
       ))}
       {days.map((day) => {
-        const dayAppointments = appointments.filter((apt) => {
-          const aptDate = parseAppointmentDate(apt.time, day);
-          return format(aptDate, "yyyy-MM-dd") === format(day, "yyyy-MM-dd");
-        });
+        const dayAppointments = appointments
+          .filter((apt) => {
+            const aptDate = parseAppointmentDate(apt.time, day);
+            return aptDate && format(aptDate, "yyyy-MM-dd") === format(day, "yyyy-MM-dd");
+          })
+          .sort(sortAppointmentsByTime);
 
         return (
           <div
