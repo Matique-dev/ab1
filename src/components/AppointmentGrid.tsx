@@ -22,6 +22,7 @@ interface AppointmentGridProps {
   hourHeight: number;
   pageMarginPercent: number;
   onAppointmentEdit: (appointment: Appointment) => void;
+  onAppointmentDelete: (appointmentId: string) => void;
 }
 
 export const AppointmentGrid = ({
@@ -32,6 +33,7 @@ export const AppointmentGrid = ({
   hourHeight,
   pageMarginPercent,
   onAppointmentEdit,
+  onAppointmentDelete,
 }: AppointmentGridProps) => {
   // Filter appointments for the current day
   const dayAppointments = appointments.filter(apt => isSameDay(apt.date, date));
@@ -56,6 +58,7 @@ export const AppointmentGrid = ({
             currentDate={date}
             appointment={apt}
             onAppointmentEdit={onAppointmentEdit}
+            onAppointmentDelete={onAppointmentDelete}
             onAppointmentCreate={() => {}}
             trigger={
               <AppointmentCard

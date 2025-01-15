@@ -24,6 +24,7 @@ interface Appointment {
 interface AppointmentModalProps {
   onAppointmentCreate: (appointment: Omit<Appointment, "id">) => void;
   onAppointmentEdit?: (appointment: Appointment) => void;
+  onAppointmentDelete?: (appointmentId: string) => void;
   currentDate: Date;
   appointment?: Appointment;
   trigger?: React.ReactNode;
@@ -32,6 +33,7 @@ interface AppointmentModalProps {
 export const AppointmentModal = ({ 
   onAppointmentCreate, 
   onAppointmentEdit,
+  onAppointmentDelete,
   currentDate, 
   appointment,
   trigger 
@@ -74,6 +76,17 @@ export const AppointmentModal = ({
     setIsOpen(false);
   };
 
+  const handleDelete = () => {
+    if (appointment?.id && onAppointmentDelete) {
+      onAppointmentDelete(appointment.id);
+      toast({
+        title: "Appointment deleted",
+        description: "The appointment has been successfully removed.",
+      });
+      setIsOpen(false);
+    }
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
@@ -94,9 +107,20 @@ export const AppointmentModal = ({
             formData={formData}
             setFormData={setFormData}
           />
-          <Button type="submit" className="w-full">
-            {appointment ? "Update Appointment" : "Create Appointment"}
-          </Button>
+          <div className="flex gap-2">
+            <Button type="submit" className="flex-1">
+              {appointment ? "Update Appointment" : "Create Appointment"}
+            </Button>
+            {appointment && onAppointmentDelete && (
+              <Button 
+                type="button" 
+                variant="destructive"
+                onClick={handleDelete}
+              >
+                Delete
+              </Button>
+            )}
+          </div>
         </form>
       </DialogContent>
     </Dialog>
