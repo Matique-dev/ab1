@@ -87,23 +87,21 @@ export const DayView = ({ date, appointments, onAppointmentEdit }: DayViewProps)
     const topPosition = (timeInMinutes / 60) * HOUR_HEIGHT;
     
     // Calculate height based on duration (minutes to pixels)
-    const height = (duration / 60) * HOUR_HEIGHT;
+    const heightInHours = duration / 60;
+    const height = heightInHours * HOUR_HEIGHT;
 
     // Calculate width and left position based on column assignment
     const column = columnInfo.columns[appointment.id];
     const totalColumns = columnInfo.maxColumns[hours] + 1;
-    const columnWidth = 90 / Math.max(totalColumns, 1); // Reduced from 100 to 90 to add margins
+    const columnWidth = 90 / Math.max(totalColumns, 1); // Use 90% of the width to leave some margin
     const width = `${columnWidth}%`;
-    const left = `${(column * columnWidth) + 5}%`; // Added 5% margin from the left
+    const left = `${(column * columnWidth) + 5}%`; // Add 5% margin from the left
     
     return { top: topPosition, height, width, left };
   };
 
   return (
     <div className="flex flex-col h-[calc(100vh-12rem)] overflow-y-auto relative">
-      {/* Time scale background */}
-      <div className="absolute top-0 left-0 w-16 h-full bg-white z-20" />
-      
       {/* Time grid lines - placed behind appointments */}
       <div className="absolute inset-0 z-0">
         {hours.map((hour) => (
@@ -115,6 +113,9 @@ export const DayView = ({ date, appointments, onAppointmentEdit }: DayViewProps)
         ))}
       </div>
 
+      {/* Time scale background */}
+      <div className="absolute top-0 left-0 w-16 h-full bg-white z-20" />
+      
       {/* Time labels */}
       <div className="absolute top-0 left-0 w-16 z-30">
         {hours.map((hour) => (
