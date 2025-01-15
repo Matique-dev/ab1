@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { isSameDay } from "date-fns";
 
 interface Appointment {
   id: string;
@@ -7,6 +8,7 @@ interface Appointment {
   time: string;
   duration: string;
   isWalkIn: boolean;
+  date?: Date; // Will be computed from time
 }
 
 interface DayViewProps {
@@ -23,8 +25,22 @@ export const DayView = ({ date, appointments }: DayViewProps) => {
       josh: "bg-green-100 border-green-300",
       rebecca: "bg-purple-100 border-purple-300",
     };
-    return colors[stylist] || "bg-gray-100 border-gray-300";
+    return colors[stylist.toLowerCase()] || "bg-gray-100 border-gray-300";
   };
+
+  // Process appointments once, creating Date objects for each
+  const processedAppointments = appointments.map(apt => {
+    try {
+      // Create a new date object for the appointment's day
+      const [hours, minutes] = apt.time.split(":").map(Number);
+      const appointmentDate = new Date(date);
+      appointmentDate.setHours(hours, minutes, 0, 0);
+      return { ...apt, date: appointmentDate };
+    } catch (e) {
+      console.error("Error processing appointment:", e);
+      return apt;
+    }
+  });
 
   // Function to calculate horizontal position based on overlapping appointments
   const calculateAppointmentPosition = (appointment: Appointment, hourAppointments: Appointment[]) => {
@@ -42,7 +58,9 @@ export const DayView = ({ date, appointments }: DayViewProps) => {
   return (
     <div className="flex flex-col h-[calc(100vh-12rem)] overflow-y-auto">
       {hours.map((hour) => {
-        const hourAppointments = appointments.filter((apt) => {
+        // Filter appointments for this hour and this specific day
+        const hourAppointments = processedAppointments.filter((apt) => {
+          if (!apt.date || !isSameDay(apt.date, date)) return false;
           const [aptHour] = apt.time.split(":");
           return parseInt(aptHour) === hour;
         });
