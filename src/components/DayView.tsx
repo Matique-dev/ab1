@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { isSameDay } from "date-fns";
+import { AppointmentModal } from "./AppointmentModal";
 
 interface Appointment {
   id: string;
@@ -14,9 +15,10 @@ interface Appointment {
 interface DayViewProps {
   date: Date;
   appointments: Appointment[];
+  onAppointmentEdit: (appointment: Appointment) => void;
 }
 
-export const DayView = ({ date, appointments }: DayViewProps) => {
+export const DayView = ({ date, appointments, onAppointmentEdit }: DayViewProps) => {
   const hours = Array.from({ length: 12 }, (_, i) => i + 9); // 9 AM to 8 PM
 
   const getStylistColor = (stylist: string) => {
@@ -61,24 +63,32 @@ export const DayView = ({ date, appointments }: DayViewProps) => {
                 const { width, left } = calculateAppointmentPosition(apt, hourAppointments);
                 
                 return (
-                  <div
+                  <AppointmentModal
                     key={apt.id}
-                    className={`absolute p-2 m-1 rounded border ${getStylistColor(
-                      apt.stylist
-                    )} ${apt.isWalkIn ? "border-dashed" : ""}`}
-                    style={{
-                      top: "0.5rem",
-                      left,
-                      width,
-                      minHeight: "3rem",
-                    }}
-                  >
-                    <div className="font-medium truncate">{apt.title}</div>
-                    <div className="text-sm text-gray-600 truncate">
-                      {apt.stylist.charAt(0).toUpperCase() + apt.stylist.slice(1)} •{" "}
-                      {apt.duration} min
-                    </div>
-                  </div>
+                    currentDate={date}
+                    appointment={apt}
+                    onAppointmentEdit={onAppointmentEdit}
+                    onAppointmentCreate={() => {}}
+                    trigger={
+                      <div
+                        className={`absolute p-2 m-1 rounded border cursor-pointer hover:opacity-80 ${getStylistColor(
+                          apt.stylist
+                        )} ${apt.isWalkIn ? "border-dashed" : ""}`}
+                        style={{
+                          top: "0.5rem",
+                          left,
+                          width,
+                          minHeight: "3rem",
+                        }}
+                      >
+                        <div className="font-medium truncate">{apt.title}</div>
+                        <div className="text-sm text-gray-600 truncate">
+                          {apt.stylist.charAt(0).toUpperCase() + apt.stylist.slice(1)} •{" "}
+                          {apt.duration} min
+                        </div>
+                      </div>
+                    }
+                  />
                 );
               })}
             </div>

@@ -15,23 +15,35 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { format } from "date-fns";
 
-interface AppointmentModalProps {
-  onAppointmentCreate: (appointment: {
-    title: string;
-    stylist: string;
-    time: string;
-    duration: string;
-    isWalkIn: boolean;
-    date: Date;
-  }) => void;
-  currentDate: Date;
+interface Appointment {
+  id?: string;
+  title: string;
+  stylist: string;
+  time: string;
+  duration: string;
+  isWalkIn: boolean;
+  date: Date;
 }
 
-export const AppointmentModal = ({ onAppointmentCreate, currentDate }: AppointmentModalProps) => {
+interface AppointmentModalProps {
+  onAppointmentCreate: (appointment: Omit<Appointment, "id">) => void;
+  onAppointmentEdit?: (appointment: Appointment) => void;
+  currentDate: Date;
+  appointment?: Appointment;
+  trigger?: React.ReactNode;
+}
+
+export const AppointmentModal = ({ 
+  onAppointmentCreate, 
+  onAppointmentEdit,
+  currentDate, 
+  appointment,
+  trigger 
+}: AppointmentModalProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const { toast } = useToast();
   const [formData, setFormData] = useState({
@@ -43,6 +55,20 @@ export const AppointmentModal = ({ onAppointmentCreate, currentDate }: Appointme
     selectedDate: format(currentDate, 'yyyy-MM-dd')
   });
 
+  // Update form data when editing an existing appointment
+  useEffect(() => {
+    if (appointment) {
+      setFormData({
+        title: appointment.title,
+        stylist: appointment.stylist,
+        time: format(appointment.date, 'HH:mm'),
+        duration: appointment.duration,
+        isWalkIn: appointment.isWalkIn,
+        selectedDate: format(appointment.date, 'yyyy-MM-dd')
+      });
+    }
+  }, [appointment]);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -51,28 +77,46 @@ export const AppointmentModal = ({ onAppointmentCreate, currentDate }: Appointme
     const appointmentDate = new Date(formData.selectedDate);
     appointmentDate.setHours(hours, minutes, 0, 0);
 
-    onAppointmentCreate({
-      ...formData,
-      date: appointmentDate,
-    });
+    if (appointment?.id && onAppointmentEdit) {
+      // Editing existing appointment
+      onAppointmentEdit({
+        ...formData,
+        id: appointment.id,
+        date: appointmentDate,
+      });
+      toast({
+        title: "Appointment updated",
+        description: "The appointment has been successfully updated.",
+      });
+    } else {
+      // Creating new appointment
+      onAppointmentCreate({
+        ...formData,
+        date: appointmentDate,
+      });
+      toast({
+        title: "Appointment created",
+        description: "The appointment has been successfully scheduled.",
+      });
+    }
     
     setIsOpen(false);
-    toast({
-      title: "Appointment created",
-      description: "The appointment has been successfully scheduled.",
-    });
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button className="bg-gradient-to-r from-salon-pink to-salon-peach hover:opacity-90">
-          New Appointment
-        </Button>
+        {trigger || (
+          <Button className="bg-gradient-to-r from-salon-pink to-salon-peach hover:opacity-90">
+            New Appointment
+          </Button>
+        )}
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Schedule Appointment</DialogTitle>
+          <DialogTitle>
+            {appointment ? "Edit Appointment" : "Schedule Appointment"}
+          </DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4 mt-4">
           <div className="space-y-2">
@@ -163,7 +207,7 @@ export const AppointmentModal = ({ onAppointmentCreate, currentDate }: Appointme
             <Label htmlFor="walkIn">Walk-in appointment</Label>
           </div>
           <Button type="submit" className="w-full">
-            Create Appointment
+            {appointment ? "Update Appointment" : "Create Appointment"}
           </Button>
         </form>
       </DialogContent>

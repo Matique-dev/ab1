@@ -29,6 +29,12 @@ const Index = () => {
     setAppointments([...appointments, newAppointment]);
   };
 
+  const handleAppointmentEdit = (updatedAppointment: Appointment) => {
+    setAppointments(appointments.map(apt => 
+      apt.id === updatedAppointment.id ? updatedAppointment : apt
+    ));
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -38,7 +44,7 @@ const Index = () => {
               Salon Calendar
             </h1>
             <AppointmentModal 
-              onAppointmentCreate={handleAppointmentCreate} 
+              onAppointmentCreate={handleAppointmentCreate}
               currentDate={currentDate}
             />
           </div>
@@ -50,7 +56,11 @@ const Index = () => {
             locale={fr}
           />
           {view === "day" && (
-            <DayView date={currentDate} appointments={appointments} />
+            <DayView 
+              date={currentDate} 
+              appointments={appointments} 
+              onAppointmentEdit={handleAppointmentEdit}
+            />
           )}
           {view === "week" && (
             <WeekView date={currentDate} appointments={appointments} />
