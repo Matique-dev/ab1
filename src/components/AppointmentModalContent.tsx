@@ -1,6 +1,14 @@
 import { Button } from "@/components/ui/button";
 import { AppointmentFormFields } from "./AppointmentFormFields";
-import { FormData } from "@/types/appointment";
+
+interface FormData {
+  title: string;
+  stylist: string;
+  time: string;
+  duration: string;
+  isWalkIn: boolean;
+  selectedDate: string;
+}
 
 interface Appointment {
   id?: string;
