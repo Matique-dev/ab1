@@ -46,67 +46,74 @@ export const AppointmentGrid = ({
   };
 
   const calculateAppointmentColumns = (appointments: Appointment[]) => {
-    // Sort appointments by start time
+    // Sort appointments by start time, then by duration (longer appointments first)
     const sortedAppointments = [...appointments].sort((a, b) => {
-      return getTimeInMinutes(a.time) - getTimeInMinutes(b.time);
+      const startDiff = getTimeInMinutes(a.time) - getTimeInMinutes(b.time);
+      if (startDiff === 0) {
+        return parseInt(b.duration) - parseInt(a.duration); // Longer duration first
+      }
+      return startDiff;
     });
 
     const columns: { [key: string]: number } = {};
-    const maxColumn: { [key: string]: number } = {};
+    const maxColumns: { [key: string]: number } = {};
 
-    // For each appointment, find all other appointments that overlap with it
+    // Create time slots for collision detection
+    const timeSlots: { [key: number]: Set<number> } = {};
+
     sortedAppointments.forEach((appointment) => {
       const startTime = getTimeInMinutes(appointment.time);
       const endTime = startTime + parseInt(appointment.duration);
 
-      // Find all appointments that overlap with the current one
-      const overlappingAppointments = sortedAppointments.filter(other => {
-        if (other.id === appointment.id) return false;
-        const otherStart = getTimeInMinutes(other.time);
-        const otherEnd = otherStart + parseInt(other.duration);
-        return (startTime < otherEnd && endTime > otherStart);
-      });
-
-      // Find the first available column that doesn't conflict with overlapping appointments
+      // Find the first available column by checking all time slots
       let column = 0;
-      let foundColumn = false;
-      while (!foundColumn) {
-        foundColumn = true;
-        for (const other of overlappingAppointments) {
-          if (columns[other.id] === column) {
-            foundColumn = false;
+      let columnFound = false;
+
+      while (!columnFound) {
+        columnFound = true;
+        // Check each minute in the appointment duration
+        for (let time = startTime; time < endTime; time++) {
+          if (!timeSlots[time]) {
+            timeSlots[time] = new Set();
+          }
+          if (timeSlots[time].has(column)) {
+            columnFound = false;
             column++;
             break;
           }
         }
       }
 
-      columns[appointment.id] = column;
+      // Reserve all time slots for this appointment
+      for (let time = startTime; time < endTime; time++) {
+        if (!timeSlots[time]) {
+          timeSlots[time] = new Set();
+        }
+        timeSlots[time].add(column);
 
-      // Update max column for each hour this appointment spans
-      const startHour = Math.floor(startTime / 60);
-      const endHour = Math.ceil(endTime / 60);
-      for (let hour = startHour; hour < endHour; hour++) {
-        maxColumn[hour] = Math.max(maxColumn[hour] || 0, column);
+        // Update max columns for each minute
+        const hour = Math.floor(time / 60);
+        maxColumns[hour] = Math.max(maxColumns[hour] || 0, column);
       }
+
+      columns[appointment.id] = column;
     });
 
-    return { columns, maxColumns: maxColumn };
+    return { columns, maxColumns };
   };
 
   const calculateAppointmentPosition = (appointment: Appointment, columnInfo: ReturnType<typeof calculateAppointmentColumns>) => {
-    const [hours, minutes] = appointment.time.split(":").map(Number);
+    const startTime = getTimeInMinutes(appointment.time);
     const duration = parseInt(appointment.duration);
     
-    const timeInMinutes = (hours - startHour) * 60 + minutes;
-    const topPosition = (timeInMinutes / 60) * hourHeight;
-    
-    const heightInHours = duration / 60;
-    const height = heightInHours * hourHeight;
+    const topPosition = ((startTime - startHour * 60) / 60) * hourHeight;
+    const height = (duration / 60) * hourHeight;
 
-    const column = columnInfo.columns[appointment.id];
-    const totalColumns = columnInfo.maxColumns[hours] + 1;
+    const hour = Math.floor(startTime / 60);
+    const totalColumns = columnInfo.maxColumns[hour] + 1;
     const columnWidth = (100 - (pageMarginPercent * 2)) / Math.max(totalColumns, 1);
+    const column = columnInfo.columns[appointment.id];
+    
     const width = `${columnWidth}%`;
     const left = `${(column * columnWidth) + pageMarginPercent}%`;
     
@@ -118,8 +125,9 @@ export const AppointmentGrid = ({
       {hours.map((hour) => {
         const hourAppointments = appointments.filter((apt) => {
           if (!isSameDay(apt.date, date)) return false;
-          const [aptHour] = apt.time.split(":").map(Number);
-          return aptHour === hour;
+          const aptStartHour = Math.floor(getTimeInMinutes(apt.time) / 60);
+          const aptEndHour = Math.ceil((getTimeInMinutes(apt.time) + parseInt(apt.duration)) / 60);
+          return aptStartHour <= hour && aptEndHour > hour;
         });
 
         const columnInfo = calculateAppointmentColumns(hourAppointments);
