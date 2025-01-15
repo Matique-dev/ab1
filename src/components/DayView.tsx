@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { isSameDay, parse } from "date-fns";
+import { isSameDay } from "date-fns";
 import { AppointmentModal } from "./AppointmentModal";
 
 interface Appointment {
@@ -32,40 +32,75 @@ export const DayView = ({ date, appointments, onAppointmentEdit }: DayViewProps)
     return colors[stylist.toLowerCase()] || "bg-gray-100 border-gray-300";
   };
 
-  const calculateAppointmentPosition = (appointment: Appointment, hourAppointments: Appointment[]) => {
+  // Function to calculate overlapping appointments and assign columns
+  const calculateAppointmentColumns = (appointments: Appointment[]) => {
+    const sortedAppointments = [...appointments].sort((a, b) => {
+      // Sort by start time
+      const [aHours, aMinutes] = a.time.split(":").map(Number);
+      const [bHours, bMinutes] = b.time.split(":").map(Number);
+      return aHours * 60 + aMinutes - (bHours * 60 + bMinutes);
+    });
+
+    const columns: { [key: string]: number } = {};
+    const maxColumn: { [key: string]: number } = {};
+
+    sortedAppointments.forEach((appointment) => {
+      const [hours, minutes] = appointment.time.split(":").map(Number);
+      const startTime = hours * 60 + minutes;
+      const endTime = startTime + parseInt(appointment.duration);
+
+      // Find the first available column
+      let column = 0;
+      while (true) {
+        let canUseColumn = true;
+        
+        // Check for overlaps in this column
+        for (const [id, col] of Object.entries(columns)) {
+          if (col === column) {
+            const existingApt = sortedAppointments.find(a => a.id === id);
+            if (existingApt) {
+              const [existingHours, existingMinutes] = existingApt.time.split(":").map(Number);
+              const existingStart = existingHours * 60 + existingMinutes;
+              const existingEnd = existingStart + parseInt(existingApt.duration);
+
+              if (startTime < existingEnd && endTime > existingStart) {
+                canUseColumn = false;
+                break;
+              }
+            }
+          }
+        }
+
+        if (canUseColumn) {
+          break;
+        }
+        column++;
+      }
+
+      columns[appointment.id] = column;
+      maxColumn[hours] = Math.max(maxColumn[hours] || 0, column);
+    });
+
+    return { columns, maxColumns: maxColumn };
+  };
+
+  const calculateAppointmentPosition = (appointment: Appointment, columnInfo: ReturnType<typeof calculateAppointmentColumns>) => {
     // Parse the time and calculate position
     const [hours, minutes] = appointment.time.split(":").map(Number);
     const duration = parseInt(appointment.duration);
     
-    // Calculate top position based on time
+    // Calculate top position based on time (precise to the minute)
     const timeInMinutes = (hours - START_HOUR) * 60 + minutes;
     const topPosition = (timeInMinutes / 60) * HOUR_HEIGHT;
     
     // Calculate height based on duration
     const height = (duration / 60) * HOUR_HEIGHT;
 
-    // Handle overlapping appointments
-    const overlappingAppointments = hourAppointments.filter(apt => {
-      const [aptHours, aptMinutes] = apt.time.split(":").map(Number);
-      const aptTimeInMinutes = (aptHours - START_HOUR) * 60 + aptMinutes;
-      const aptDuration = parseInt(apt.duration);
-      
-      // Check if appointments overlap
-      return (
-        timeInMinutes < aptTimeInMinutes + aptDuration &&
-        timeInMinutes + duration > aptTimeInMinutes &&
-        apt.stylist !== appointment.stylist
-      );
-    });
-
-    const totalOverlapping = overlappingAppointments.length + 1;
-    const stylistIndex = hourAppointments
-      .filter(apt => apt.time === appointment.time)
-      .findIndex(apt => apt.stylist === appointment.stylist);
-    
-    // Calculate width and left position for overlapping appointments
-    const width = `${100 / Math.max(totalOverlapping, 1)}%`;
-    const left = `${(stylistIndex * 100) / Math.max(totalOverlapping, 1)}%`;
+    // Calculate width and left position based on column assignment
+    const column = columnInfo.columns[appointment.id];
+    const totalColumns = columnInfo.maxColumns[hours] + 1;
+    const width = `${100 / Math.max(totalColumns, 1)}%`;
+    const left = `${(column * 100) / Math.max(totalColumns, 1)}%`;
     
     return { top: topPosition, height, width, left };
   };
@@ -79,22 +114,19 @@ export const DayView = ({ date, appointments, onAppointmentEdit }: DayViewProps)
           </div>
           <div className="absolute inset-0 border-t border-gray-200" />
           <div className="relative ml-16 mr-4 h-full">
-            {appointments
-              .filter((apt) => {
+            {(() => {
+              const hourAppointments = appointments.filter((apt) => {
                 if (!isSameDay(apt.date, date)) return false;
                 const [aptHour] = apt.time.split(":").map(Number);
                 return aptHour === hour;
-              })
-              .map((apt) => {
-                const hourAppointments = appointments.filter((a) => {
-                  if (!isSameDay(a.date, date)) return false;
-                  const [aptHour] = a.time.split(":").map(Number);
-                  return aptHour === hour;
-                });
+              });
 
+              const columnInfo = calculateAppointmentColumns(hourAppointments);
+
+              return hourAppointments.map((apt) => {
                 const { top, height, width, left } = calculateAppointmentPosition(
                   apt,
-                  hourAppointments
+                  columnInfo
                 );
 
                 return (
@@ -125,7 +157,8 @@ export const DayView = ({ date, appointments, onAppointmentEdit }: DayViewProps)
                     }
                   />
                 );
-              })}
+              });
+            })()}
           </div>
         </div>
       ))}
