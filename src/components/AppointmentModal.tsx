@@ -55,19 +55,32 @@ export const AppointmentModal = ({
     selectedDate: format(currentDate, 'yyyy-MM-dd')
   });
 
-  // Update form data when editing an existing appointment
+  // Reset form data when modal opens/closes
   useEffect(() => {
-    if (appointment) {
-      setFormData({
-        title: appointment.title,
-        stylist: appointment.stylist,
-        time: format(appointment.date, 'HH:mm'),
-        duration: appointment.duration,
-        isWalkIn: appointment.isWalkIn,
-        selectedDate: format(appointment.date, 'yyyy-MM-dd')
-      });
+    if (isOpen) {
+      if (appointment) {
+        // If editing an appointment, populate with appointment data
+        setFormData({
+          title: appointment.title,
+          stylist: appointment.stylist,
+          time: format(appointment.date, 'HH:mm'),
+          duration: appointment.duration,
+          isWalkIn: appointment.isWalkIn,
+          selectedDate: format(appointment.date, 'yyyy-MM-dd')
+        });
+      } else {
+        // If creating a new appointment, reset to default values
+        setFormData({
+          title: "",
+          stylist: "",
+          time: "",
+          duration: "60",
+          isWalkIn: false,
+          selectedDate: format(currentDate, 'yyyy-MM-dd')
+        });
+      }
     }
-  }, [appointment]);
+  }, [isOpen, appointment, currentDate]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
