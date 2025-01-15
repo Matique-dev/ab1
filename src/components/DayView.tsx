@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { isSameDay } from "date-fns";
+import { isSameDay, format } from "date-fns";
 import { AppointmentModal } from "./AppointmentModal";
 
 interface Appointment {
@@ -22,6 +22,7 @@ export const DayView = ({ date, appointments, onAppointmentEdit }: DayViewProps)
   const hours = Array.from({ length: 12 }, (_, i) => i + 9); // 9 AM to 8 PM
   const HOUR_HEIGHT = 100; // Height in pixels for one hour
   const START_HOUR = 9; // 9 AM
+  const PAGE_MARGIN_PERCENT = 2.5; // 2.5% margin from page edges
 
   const getStylistColor = (stylist: string) => {
     const colors: { [key: string]: string } = {
@@ -82,20 +83,18 @@ export const DayView = ({ date, appointments, onAppointmentEdit }: DayViewProps)
     const [hours, minutes] = appointment.time.split(":").map(Number);
     const duration = parseInt(appointment.duration);
     
-    // Calculate top position based on time (precise to the minute)
     const timeInMinutes = (hours - START_HOUR) * 60 + minutes;
     const topPosition = (timeInMinutes / 60) * HOUR_HEIGHT;
     
-    // Calculate height based on duration (minutes to pixels)
     const heightInHours = duration / 60;
     const height = heightInHours * HOUR_HEIGHT;
 
     // Calculate width and left position based on column assignment
     const column = columnInfo.columns[appointment.id];
     const totalColumns = columnInfo.maxColumns[hours] + 1;
-    const columnWidth = 90 / Math.max(totalColumns, 1); // Use 90% of the width to leave some margin
+    const columnWidth = (100 - (PAGE_MARGIN_PERCENT * 2)) / Math.max(totalColumns, 1);
     const width = `${columnWidth}%`;
-    const left = `${(column * columnWidth) + 5}%`; // Add 5% margin from the left
+    const left = `${(column * columnWidth) + PAGE_MARGIN_PERCENT}%`;
     
     return { top: topPosition, height, width, left };
   };
@@ -124,7 +123,7 @@ export const DayView = ({ date, appointments, onAppointmentEdit }: DayViewProps)
             className="absolute -top-3 left-2 text-sm text-gray-500 bg-white pr-2"
             style={{ top: `${(hour - START_HOUR) * HOUR_HEIGHT}px` }}
           >
-            {hour % 12 || 12}:00 {hour >= 12 ? "PM" : "AM"}
+            {format(new Date().setHours(hour, 0, 0, 0), 'HH:00')}
           </div>
         ))}
       </div>
