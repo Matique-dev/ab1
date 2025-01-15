@@ -27,12 +27,13 @@ const Business = () => {
         </CardContent>
       </Card>
 
-      <Card className="opacity-50">
-        <CardHeader>
+      <Card>
+        <CardHeader className="space-y-1.5">
           <CardTitle>Exception Dates</CardTitle>
+          <p className="text-sm text-salon-gray">Define exceptions to your Business Hours, such as planned business holidays and days where business hours are different than the standard.</p>
         </CardHeader>
         <CardContent>
-          <p className="text-muted-foreground">Coming soon...</p>
+          <ExceptionDates />
         </CardContent>
       </Card>
 
