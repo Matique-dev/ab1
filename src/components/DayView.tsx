@@ -1,6 +1,8 @@
 import { TimeGrid } from "./TimeGrid";
 import { AppointmentGrid } from "./AppointmentGrid";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import { AppointmentModal } from "./AppointmentModal";
+import { format } from "date-fns";
 
 interface Appointment {
   id: string;
@@ -30,6 +32,8 @@ export const DayView = ({
   const START_HOUR = 9; // 9 AM
   const PAGE_MARGIN_PERCENT = 2.5; // 2.5% margin from page edges
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedTime, setSelectedTime] = useState<string>("");
 
   useEffect(() => {
     const container = scrollContainerRef.current;
@@ -72,26 +76,66 @@ export const DayView = ({
     };
   }, [HOUR_HEIGHT]);
 
+  const handleDoubleClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+
+    // Get click position relative to the container
+    const rect = container.getBoundingClientRect();
+    const relativeY = e.clientY - rect.top + container.scrollTop;
+
+    // Calculate the time based on the click position
+    const totalMinutes = (relativeY / HOUR_HEIGHT) * 60;
+    const hour = Math.floor(totalMinutes / 60) + START_HOUR;
+    const minutes = Math.floor((totalMinutes % 60) / 30) * 30;
+
+    // Format the time string (HH:mm)
+    const timeString = `${hour.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+    
+    setSelectedTime(timeString);
+    setIsModalOpen(true);
+  };
+
+  const handleAppointmentCreate = (appointment: Omit<Appointment, "id">) => {
+    const newAppointment = {
+      ...appointment,
+      id: Math.random().toString(36).substr(2, 9),
+    };
+    // Here you would typically call a parent function to add the appointment
+    console.log("New appointment created:", newAppointment);
+  };
+
   return (
-    <div 
-      ref={scrollContainerRef}
-      className="flex flex-col h-[calc(100vh-12rem)] overflow-y-auto relative scroll-smooth"
-    >
-      <TimeGrid 
-        hours={hours}
-        startHour={START_HOUR}
-        hourHeight={HOUR_HEIGHT}
+    <>
+      <div 
+        ref={scrollContainerRef}
+        className="flex flex-col h-[calc(100vh-12rem)] overflow-y-auto relative scroll-smooth"
+        onDoubleClick={handleDoubleClick}
+      >
+        <TimeGrid 
+          hours={hours}
+          startHour={START_HOUR}
+          hourHeight={HOUR_HEIGHT}
+        />
+        <AppointmentGrid
+          date={date}
+          appointments={appointments}
+          hours={hours}
+          startHour={START_HOUR}
+          hourHeight={HOUR_HEIGHT}
+          pageMarginPercent={PAGE_MARGIN_PERCENT}
+          onAppointmentEdit={onAppointmentEdit}
+          onAppointmentDelete={onAppointmentDelete}
+        />
+      </div>
+      <AppointmentModal
+        onAppointmentCreate={handleAppointmentCreate}
+        currentDate={date}
+        trigger={<></>}
+        isOpen={isModalOpen}
+        onOpenChange={setIsModalOpen}
+        defaultTime={selectedTime}
       />
-      <AppointmentGrid
-        date={date}
-        appointments={appointments}
-        hours={hours}
-        startHour={START_HOUR}
-        hourHeight={HOUR_HEIGHT}
-        pageMarginPercent={PAGE_MARGIN_PERCENT}
-        onAppointmentEdit={onAppointmentEdit}
-        onAppointmentDelete={onAppointmentDelete}
-      />
-    </div>
+    </>
   );
 };

@@ -6,7 +6,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { AppointmentFormFields } from "./AppointmentFormFields";
 import { useAppointmentForm } from "@/hooks/useAppointmentForm";
@@ -28,6 +28,9 @@ interface AppointmentModalProps {
   currentDate: Date;
   appointment?: Appointment;
   trigger?: React.ReactNode;
+  isOpen?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  defaultTime?: string;
 }
 
 export const AppointmentModal = ({ 
@@ -36,11 +39,23 @@ export const AppointmentModal = ({
   onAppointmentDelete,
   currentDate, 
   appointment,
-  trigger 
+  trigger,
+  isOpen: controlledIsOpen,
+  onOpenChange: controlledOnOpenChange,
+  defaultTime
 }: AppointmentModalProps) => {
-  const [isOpen, setIsOpen] = useState(false);
+  const [internalIsOpen, setInternalIsOpen] = useState(false);
+  const isOpen = controlledIsOpen ?? internalIsOpen;
+  const onOpenChange = controlledOnOpenChange ?? setInternalIsOpen;
+  
   const { toast } = useToast();
   const { formData, setFormData } = useAppointmentForm(currentDate, appointment, isOpen);
+
+  useEffect(() => {
+    if (isOpen && defaultTime) {
+      setFormData(prev => ({ ...prev, time: defaultTime }));
+    }
+  }, [isOpen, defaultTime, setFormData]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -73,7 +88,7 @@ export const AppointmentModal = ({
       });
     }
     
-    setIsOpen(false);
+    onOpenChange(false);
   };
 
   const handleDelete = () => {
@@ -83,12 +98,12 @@ export const AppointmentModal = ({
         title: "Appointment deleted",
         description: "The appointment has been successfully removed.",
       });
-      setIsOpen(false);
+      onOpenChange(false);
     }
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogTrigger asChild>
         {trigger || (
           <Button className="bg-gradient-to-r from-salon-pink to-salon-peach hover:opacity-90">
