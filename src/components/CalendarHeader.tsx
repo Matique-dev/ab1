@@ -1,11 +1,13 @@
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { Locale } from "date-fns";
 
 interface CalendarHeaderProps {
   currentDate: Date;
   view: "day" | "week" | "month";
   onViewChange: (view: "day" | "week" | "month") => void;
   onDateChange: (date: Date) => void;
+  locale?: Locale;
 }
 
 export const CalendarHeader = ({
@@ -13,6 +15,7 @@ export const CalendarHeader = ({
   view,
   onViewChange,
   onDateChange,
+  locale,
 }: CalendarHeaderProps) => {
   const handlePrevious = () => {
     const newDate = new Date(currentDate);

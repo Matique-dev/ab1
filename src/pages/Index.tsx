@@ -2,7 +2,9 @@ import { useState } from "react";
 import { CalendarHeader } from "@/components/CalendarHeader";
 import { AppointmentModal } from "@/components/AppointmentModal";
 import { DayView } from "@/components/DayView";
-import { fr } from 'date-fns/locale';
+import { WeekView } from "@/components/WeekView";
+import { MonthView } from "@/components/MonthView";
+import { fr } from "date-fns/locale";
 
 interface Appointment {
   id: string;
@@ -46,10 +48,11 @@ const Index = () => {
           {view === "day" && (
             <DayView date={currentDate} appointments={appointments} />
           )}
-          {view !== "day" && (
-            <div className="p-12 text-center text-gray-500">
-              {view.charAt(0).toUpperCase() + view.slice(1)} view coming soon!
-            </div>
+          {view === "week" && (
+            <WeekView date={currentDate} appointments={appointments} />
+          )}
+          {view === "month" && (
+            <MonthView date={currentDate} appointments={appointments} />
           )}
         </div>
       </div>
