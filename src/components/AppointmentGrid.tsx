@@ -51,15 +51,18 @@ export const AppointmentGrid = ({
     const start2 = getTimeInMinutes(apt2.time);
     const end2 = start2 + parseInt(apt2.duration);
 
-    return (start1 < end2 && end1 > start2);
+    return start1 < end2 && end1 > start2;
   };
 
   const removeDuplicateAppointments = (appointments: Appointment[]) => {
-    return appointments.filter((apt, index, self) =>
-      index === self.findIndex((a) => (
-        a.id === apt.id
-      ))
-    );
+    const seen = new Set<string>();
+    return appointments.filter(apt => {
+      if (seen.has(apt.id)) {
+        return false;
+      }
+      seen.add(apt.id);
+      return true;
+    });
   };
 
   const calculateAppointmentColumns = (appointments: Appointment[]) => {
@@ -132,17 +135,30 @@ export const AppointmentGrid = ({
     return { top: topPosition, height, width, left };
   };
 
+  // Create a Set to track processed appointments
+  const processedAppointments = new Set<string>();
+
   return (
     <div className="relative ml-16 mr-4 h-full z-10">
       {hours.map((hour) => {
         const hourAppointments = appointments.filter((apt) => {
+          // Skip if we've already processed this appointment
+          if (processedAppointments.has(apt.id)) return false;
+          
           if (!isSameDay(apt.date, date)) return false;
           const aptStartMinutes = getTimeInMinutes(apt.time);
           const aptEndMinutes = aptStartMinutes + parseInt(apt.duration);
           const hourStartMinutes = hour * 60;
           const hourEndMinutes = (hour + 1) * 60;
           
-          return aptStartMinutes < hourEndMinutes && aptEndMinutes > hourStartMinutes;
+          const isInHourRange = aptStartMinutes < hourEndMinutes && aptEndMinutes > hourStartMinutes;
+          
+          // If the appointment is in range, mark it as processed
+          if (isInHourRange) {
+            processedAppointments.add(apt.id);
+          }
+          
+          return isInHourRange;
         });
 
         const columnInfo = calculateAppointmentColumns(hourAppointments);
