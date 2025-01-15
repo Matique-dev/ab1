@@ -29,6 +29,20 @@ export const MonthView = ({ date, appointments }: MonthViewProps) => {
 
   const days = eachDayOfInterval({ start: calendarStart, end: calendarEnd });
 
+  const parseAppointmentDate = (dateStr: string, day: Date) => {
+    try {
+      // Assuming time comes in "HH:mm" format
+      const [hours, minutes] = dateStr.split(":");
+      const appointmentDate = new Date(day);
+      appointmentDate.setHours(parseInt(hours, 10));
+      appointmentDate.setMinutes(parseInt(minutes, 10));
+      return appointmentDate;
+    } catch (e) {
+      console.error("Error parsing date:", e);
+      return new Date(); // Fallback to current date if parsing fails
+    }
+  };
+
   return (
     <div className="grid grid-cols-7 gap-1 p-4">
       {["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"].map((day) => (
@@ -37,18 +51,16 @@ export const MonthView = ({ date, appointments }: MonthViewProps) => {
         </div>
       ))}
       {days.map((day) => {
-        const dayAppointments = appointments.filter(
-          (apt) =>
-            format(new Date(apt.time), "yyyy-MM-dd") === format(day, "yyyy-MM-dd")
-        );
+        const dayAppointments = appointments.filter((apt) => {
+          const aptDate = parseAppointmentDate(apt.time, day);
+          return format(aptDate, "yyyy-MM-dd") === format(day, "yyyy-MM-dd");
+        });
 
         return (
           <div
             key={day.toString()}
             className={`min-h-[100px] border p-2 ${
-              isSameMonth(day, date)
-                ? "bg-white"
-                : "bg-gray-50 text-gray-400"
+              isSameMonth(day, date) ? "bg-white" : "bg-gray-50 text-gray-400"
             }`}
           >
             <div className="text-right">{format(day, "d")}</div>
@@ -58,7 +70,7 @@ export const MonthView = ({ date, appointments }: MonthViewProps) => {
                   key={apt.id}
                   className="bg-blue-100 p-1 rounded text-xs truncate"
                 >
-                  {format(new Date(apt.time), "HH:mm")} - {apt.title}
+                  {apt.time} - {apt.title}
                 </div>
               ))}
               {dayAppointments.length > 2 && (
