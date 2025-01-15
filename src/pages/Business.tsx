@@ -18,8 +18,9 @@ const Business = () => {
       </Card>
 
       <Card>
-        <CardHeader>
+        <CardHeader className="space-y-1.5">
           <CardTitle>Business Hours</CardTitle>
+          <p className="text-sm text-salon-gray">Set the opening hours for your business, during your standard week.</p>
         </CardHeader>
         <CardContent>
           <BusinessHours />
