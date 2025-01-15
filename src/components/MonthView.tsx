@@ -6,19 +6,24 @@ import {
   isSameMonth,
   startOfWeek,
   endOfWeek,
+  isSameDay,
+  parse,
 } from "date-fns";
 import { fr } from "date-fns/locale";
 
+interface Appointment {
+  id: string;
+  title: string;
+  stylist: string;
+  time: string;
+  duration: string;
+  isWalkIn: boolean;
+  date?: Date; // Will be computed from time
+}
+
 interface MonthViewProps {
   date: Date;
-  appointments: Array<{
-    id: string;
-    title: string;
-    stylist: string;
-    time: string;
-    duration: string;
-    isWalkIn: boolean;
-  }>;
+  appointments: Appointment[];
 }
 
 export const MonthView = ({ date, appointments }: MonthViewProps) => {
@@ -29,28 +34,27 @@ export const MonthView = ({ date, appointments }: MonthViewProps) => {
 
   const days = eachDayOfInterval({ start: calendarStart, end: calendarEnd });
 
-  const parseAppointmentDate = (dateStr: string, day: Date) => {
+  // Process appointments once, creating Date objects for each
+  const processedAppointments = appointments.map(apt => {
     try {
-      // Assuming time comes in "HH:mm" format
-      const [hours, minutes] = dateStr.split(":");
-      const appointmentDate = new Date(day);
-      appointmentDate.setHours(parseInt(hours, 10));
-      appointmentDate.setMinutes(parseInt(minutes, 10));
-      return appointmentDate;
+      // Create a new date object for the appointment's day
+      const [hours, minutes] = apt.time.split(":").map(Number);
+      const appointmentDate = new Date(date);
+      appointmentDate.setHours(hours, minutes, 0, 0);
+      return { ...apt, date: appointmentDate };
     } catch (e) {
-      console.error("Error parsing date:", e);
-      return null; // Return null instead of fallback date to skip invalid dates
+      console.error("Error processing appointment:", e);
+      return apt;
     }
-  };
+  });
 
-  const sortAppointmentsByTime = (a: typeof appointments[0], b: typeof appointments[0]) => {
-    const [aHours, aMinutes] = a.time.split(":").map(Number);
-    const [bHours, bMinutes] = b.time.split(":").map(Number);
-    
-    if (aHours === bHours) {
-      return aMinutes - bMinutes;
-    }
-    return aHours - bHours;
+  const getAppointmentsForDay = (day: Date) => {
+    return processedAppointments
+      .filter(apt => apt.date && isSameDay(apt.date, day))
+      .sort((a, b) => {
+        if (!a.date || !b.date) return 0;
+        return a.date.getTime() - b.date.getTime();
+      });
   };
 
   return (
@@ -61,12 +65,7 @@ export const MonthView = ({ date, appointments }: MonthViewProps) => {
         </div>
       ))}
       {days.map((day) => {
-        const dayAppointments = appointments
-          .filter((apt) => {
-            const aptDate = parseAppointmentDate(apt.time, day);
-            return aptDate && format(aptDate, "yyyy-MM-dd") === format(day, "yyyy-MM-dd");
-          })
-          .sort(sortAppointmentsByTime);
+        const dayAppointments = getAppointmentsForDay(day);
 
         return (
           <div
