@@ -23,9 +23,6 @@ interface DayViewProps {
   appointments: Appointment[];
   onAppointmentEdit: (appointment: Appointment) => void;
   onAppointmentDelete: (appointmentId: string) => void;
-  employees: Employee[];
-  services: ServiceType[];
-  businessHours: WeekSchedule;
 }
 
 export const DayView = ({ 
@@ -42,7 +39,7 @@ export const DayView = ({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedTime, setSelectedTime] = useState<string>("");
 
-  // Get business configuration from the store
+  // Get all business configuration from the store
   const { 
     employees, 
     services, 

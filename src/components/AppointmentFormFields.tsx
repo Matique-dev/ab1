@@ -10,7 +10,7 @@ import {
 import { Employee } from "@/types/schedule";
 import { ServiceType } from "@/types/service";
 import { useState, useEffect } from "react";
-import { Scissors, Brush, Droplet, User } from "lucide-react";
+import { Scissors, Brush, Droplet } from "lucide-react";
 
 interface FormData {
   title: string;
@@ -34,6 +34,8 @@ const iconMap = {
   brush: Brush,
   droplet: Droplet
 };
+
+const UNASSIGNED_COLOR = "#6557FF";
 
 export const AppointmentFormFields = ({
   formData,
@@ -71,7 +73,7 @@ export const AppointmentFormFields = ({
     {
       id: "anyone",
       name: "Anyone",
-      color: "#808080",
+      color: UNASSIGNED_COLOR,
     },
     ...availableEmployees
   ];
