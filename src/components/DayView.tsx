@@ -1,18 +1,18 @@
 import { useState } from "react";
-import { format } from "date-fns";
 import { AppointmentGrid } from "./AppointmentGrid";
 import { AppointmentModal } from "./AppointmentModal";
 import { TimeGrid } from "./TimeGrid";
 import { useBusinessStore } from "@/hooks/useBusinessStore";
 
 interface Appointment {
-  id?: string;
+  id: string;  // Making id required
   title: string;
   stylist: string;
   time: string;
   duration: string;
   isWalkIn: boolean;
   date: Date;
+  serviceId?: string;
 }
 
 interface DayViewProps {
@@ -21,6 +21,10 @@ interface DayViewProps {
   onAppointmentEdit: (updatedAppointment: Appointment) => void;
   onAppointmentDelete: (appointmentId: string) => void;
 }
+
+const DEFAULT_HOURS = Array.from({ length: 13 }, (_, i) => i + 8); // 8 AM to 8 PM
+const DEFAULT_START_HOUR = 8;
+const DEFAULT_HOUR_HEIGHT = 60;
 
 export const DayView = ({
   date,
@@ -40,20 +44,30 @@ export const DayView = ({
   };
 
   const handleAppointmentCreate = (appointment: Omit<Appointment, "id">) => {
-    // Logic for creating a new appointment
-    // This is where you would typically call an API to save the appointment
     console.log("Creating appointment:", appointment);
   };
 
   return (
     <div className="flex flex-1">
-      <TimeGrid onTimeClick={handleTimeClick} />
+      <TimeGrid 
+        hours={DEFAULT_HOURS}
+        startHour={DEFAULT_START_HOUR}
+        hourHeight={DEFAULT_HOUR_HEIGHT}
+      />
       <div className="flex-1 relative min-h-[600px]">
         <AppointmentGrid
           date={date}
           appointments={appointments}
+          hours={DEFAULT_HOURS}
+          startHour={DEFAULT_START_HOUR}
+          hourHeight={DEFAULT_HOUR_HEIGHT}
+          pageMarginPercent={10}
           onAppointmentEdit={onAppointmentEdit}
           onAppointmentDelete={onAppointmentDelete}
+          employees={employees}
+          getServiceDetails={(serviceId) => 
+            services.find(service => service.id === serviceId) || null
+          }
         />
         <AppointmentModal
           currentDate={date}
