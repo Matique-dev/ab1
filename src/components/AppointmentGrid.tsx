@@ -3,8 +3,7 @@ import { AppointmentCard } from "./AppointmentCard";
 import { AppointmentModal } from "./AppointmentModal";
 import { calculateAppointmentColumns, calculateAppointmentPosition } from "./AppointmentColumns";
 import { getStylistColor } from "@/utils/appointmentCalculations";
-import { Employee } from "@/types/schedule";
-import { ServiceType } from "@/types/service";
+import { useBusinessStore } from "@/hooks/useBusinessStore";
 
 interface Appointment {
   id: string;
@@ -26,8 +25,6 @@ interface AppointmentGridProps {
   pageMarginPercent: number;
   onAppointmentEdit: (appointment: Appointment) => void;
   onAppointmentDelete: (appointmentId: string) => void;
-  employees: Employee[];
-  getServiceDetails: (serviceId?: string) => ServiceType | null;
 }
 
 export const AppointmentGrid = ({
@@ -39,16 +36,23 @@ export const AppointmentGrid = ({
   pageMarginPercent,
   onAppointmentEdit,
   onAppointmentDelete,
-  employees,
-  getServiceDetails,
 }: AppointmentGridProps) => {
   const dayAppointments = appointments.filter(apt => isSameDay(apt.date, date));
   const columnInfo = calculateAppointmentColumns(dayAppointments);
+  
+  // Get business configuration from the store
+  const { employees = [], services = [] } = useBusinessStore();
 
   // Get employee color from employees array
   const getEmployeeColor = (stylistId: string) => {
     const employee = employees.find(emp => emp.id === stylistId);
     return employee?.color || getStylistColor(stylistId);
+  };
+
+  // Get service details for appointments
+  const getServiceDetails = (serviceId?: string) => {
+    if (!serviceId) return null;
+    return services.find(service => service.id === serviceId);
   };
 
   return (
