@@ -24,11 +24,12 @@ interface FormData {
 
 interface AppointmentFormFieldsProps {
   formData: FormData;
-  setFormData: React.Dispatch<React.SetStateAction<FormData>>;
+  setFormData: (data: FormData) => void;
   availableEmployees: Employee[];
   services: ServiceType[];
 }
 
+// Map of icon names to components
 const iconMap = {
   scissors: Scissors,
   brush: Brush,
@@ -47,30 +48,47 @@ export const AppointmentFormFields = ({
   const [customDuration, setCustomDuration] = useState(false);
 
   useEffect(() => {
-    if (services.length > 0 && formData) {
+    // Initialize selectedService based on the appointment's serviceId
+    if (services.length > 0) {
       const service = formData.serviceId 
         ? services.find(s => s.id === formData.serviceId) 
-        : undefined;
-      
+        : services[0];
+        
       if (service) {
         setSelectedService(service);
-        setCustomDuration(
-          service.durationMinutes.toString() !== formData.duration
-        );
+        
+        // Only set duration if it's not already set in formData
+        if (!formData.duration) {
+          setFormData({
+            ...formData,
+            duration: service.durationMinutes.toString()
+          });
+        }
       }
     }
   }, [services, formData.serviceId]);
 
   useEffect(() => {
+    // Set custom duration flag if the duration doesn't match any service duration
+    if (formData.duration) {
+      const matchingService = services.find(
+        service => service.durationMinutes.toString() === formData.duration
+      );
+      setCustomDuration(!matchingService);
+    }
+  }, [formData.duration, services]);
+
+  useEffect(() => {
     if (selectedService && !customDuration) {
-      setFormData((prev: FormData) => ({
-        ...prev,
+      setFormData({
+        ...formData,
         duration: selectedService.durationMinutes.toString(),
         serviceId: selectedService.id
-      }));
+      });
     }
-  }, [selectedService, customDuration, setFormData]);
+  }, [selectedService, customDuration]);
 
+  // Add "Anyone" option to employees list
   const employeeOptions = [
     {
       id: "anyone",
@@ -261,3 +279,4 @@ export const AppointmentFormFields = ({
       </div>
     </>
   );
+};

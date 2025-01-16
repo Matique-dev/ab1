@@ -23,7 +23,6 @@ interface Appointment {
   duration: string;
   isWalkIn: boolean;
   date: Date;
-  serviceId?: string;
 }
 
 interface AppointmentModalProps {
@@ -54,25 +53,6 @@ export const AppointmentModal = ({
   const onOpenChange = controlledOnOpenChange ?? setInternalIsOpen;
   
   const { formData, setFormData } = useAppointmentForm(currentDate, appointment, isOpen);
-
-  useEffect(() => {
-    if (isOpen && appointment) {
-      // Pre-fill form with appointment data when editing
-      setFormData({
-        title: appointment.title,
-        stylist: appointment.stylist,
-        time: format(appointment.date, 'HH:mm'),
-        duration: appointment.duration,
-        isWalkIn: appointment.isWalkIn,
-        selectedDate: format(appointment.date, 'yyyy-MM-dd'),
-        serviceId: appointment.serviceId
-      });
-    } else if (isOpen && defaultTime) {
-      // Set default time for new appointments
-      setFormData(prev => ({ ...prev, time: defaultTime }));
-    }
-  }, [isOpen, appointment, defaultTime]);
-
   const { handleSubmit, handleDelete } = useAppointmentModal({
     onAppointmentCreate,
     onAppointmentEdit,
