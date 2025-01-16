@@ -1,12 +1,13 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { ServiceCard } from "./ServiceCard";
-import { ServiceType, defaultServices } from '@/types/service';
+import { ServiceType } from '@/types/service';
 import { useToast } from "@/components/ui/use-toast";
+import { useBusinessStore } from "@/hooks/useBusinessStore";
 
 export const ServicesManagement = () => {
-  const [services, setServices] = useState<ServiceType[]>(defaultServices);
+  const { services, updateServices } = useBusinessStore();
   const { toast } = useToast();
 
   const handleAddService = () => {
@@ -18,11 +19,11 @@ export const ServicesManagement = () => {
       priceEur: 0,
       category: 'haircuts'
     };
-    setServices([...services, newService]);
+    updateServices([...services, newService]);
   };
 
   const handleUpdateService = (updatedService: ServiceType) => {
-    setServices(services.map(service => 
+    updateServices(services.map(service => 
       service.id === updatedService.id ? updatedService : service
     ));
     toast({
@@ -32,7 +33,7 @@ export const ServicesManagement = () => {
   };
 
   const handleDeleteService = (id: string) => {
-    setServices(services.filter(service => service.id !== id));
+    updateServices(services.filter(service => service.id !== id));
     toast({
       title: "Service deleted",
       description: "The service has been removed successfully.",

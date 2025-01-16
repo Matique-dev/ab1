@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import { DndContext } from "@dnd-kit/core";
 import { SortableContext } from "@dnd-kit/sortable";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,13 +7,13 @@ import { EmployeeSchedule } from "./EmployeeSchedule";
 import { Employee, EMPLOYEE_COLORS } from "@/types/schedule";
 import { useToast } from "@/hooks/use-toast";
 import { Users, Plus } from "lucide-react";
-import { DEFAULT_BUSINESS_HOURS } from "@/constants/business";
+import { useBusinessStore } from "@/hooks/useBusinessStore";
 
 /**
  * Creates a default schedule for a new employee based on business hours
  * @param businessHours - The business operating hours
  */
-const createDefaultEmployeeSchedule = (businessHours: typeof DEFAULT_BUSINESS_HOURS) => {
+const createDefaultEmployeeSchedule = (businessHours: any) => {
   const schedule: { [key: string]: any } = {};
   Object.entries(businessHours).forEach(([day, hours]) => {
     schedule[day] = {
@@ -28,8 +28,8 @@ const createDefaultEmployeeSchedule = (businessHours: typeof DEFAULT_BUSINESS_HO
 };
 
 interface TeamPlanningProps {
-  initialBusinessHours: typeof DEFAULT_BUSINESS_HOURS;
-  onBusinessHoursChange: (schedule: typeof DEFAULT_BUSINESS_HOURS) => void;
+  initialBusinessHours: any;
+  onBusinessHoursChange: (schedule: any) => void;
 }
 
 export const TeamPlanning: React.FC<TeamPlanningProps> = ({
@@ -37,15 +37,8 @@ export const TeamPlanning: React.FC<TeamPlanningProps> = ({
   onBusinessHoursChange
 }) => {
   const { toast } = useToast();
-  const [employees, setEmployees] = useState<Employee[]>([
-    {
-      id: "manager",
-      name: "Manager",
-      color: EMPLOYEE_COLORS.DEFAULT,
-      schedule: createDefaultEmployeeSchedule(initialBusinessHours),
-    },
-  ]);
-  const [colorIndex, setColorIndex] = useState(1);
+  const { employees, updateEmployees } = useBusinessStore();
+  const [colorIndex, setColorIndex] = React.useState(1);
 
   const handleAddEmployee = () => {
     const colors = [
@@ -61,7 +54,7 @@ export const TeamPlanning: React.FC<TeamPlanningProps> = ({
       schedule: createDefaultEmployeeSchedule(initialBusinessHours),
     };
     
-    setEmployees([...employees, newEmployee]);
+    updateEmployees([...employees, newEmployee]);
     setColorIndex(prev => prev + 1);
     
     toast({
@@ -71,7 +64,7 @@ export const TeamPlanning: React.FC<TeamPlanningProps> = ({
   };
 
   const handleRemoveEmployee = (employeeId: string) => {
-    setEmployees(employees.filter((emp) => emp.id !== employeeId));
+    updateEmployees(employees.filter((emp) => emp.id !== employeeId));
     toast({
       title: "Employee removed",
       description: "The employee has been removed from the team.",
@@ -79,13 +72,13 @@ export const TeamPlanning: React.FC<TeamPlanningProps> = ({
   };
 
   const handleUpdateEmployeeSchedule = (employeeId: string, newSchedule: Employee['schedule']) => {
-    setEmployees(employees.map((emp) =>
+    updateEmployees(employees.map((emp) =>
       emp.id === employeeId ? { ...emp, schedule: newSchedule } : emp
     ));
   };
 
   const handleUpdateEmployee = (employeeId: string, updates: Partial<Employee>) => {
-    setEmployees(employees.map((emp) =>
+    updateEmployees(employees.map((emp) =>
       emp.id === employeeId ? { ...emp, ...updates } : emp
     ));
   };

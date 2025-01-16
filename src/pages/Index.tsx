@@ -5,6 +5,7 @@ import { DayView } from "@/components/DayView";
 import { WeekView } from "@/components/WeekView";
 import { MonthView } from "@/components/MonthView";
 import { fr } from "date-fns/locale";
+import { useBusinessStore } from "@/hooks/useBusinessStore";
 
 interface Appointment {
   id: string;
@@ -20,6 +21,7 @@ const Index = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [view, setView] = useState<"day" | "week" | "month">("day");
   const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const { employees, services, businessHours } = useBusinessStore();
 
   const handleAppointmentCreate = (appointment: Omit<Appointment, "id">) => {
     const newAppointment = {
@@ -50,6 +52,9 @@ const Index = () => {
             <AppointmentModal 
               onAppointmentCreate={handleAppointmentCreate}
               currentDate={currentDate}
+              employees={employees}
+              services={services}
+              businessHours={businessHours}
             />
           </div>
           <CalendarHeader
@@ -65,6 +70,9 @@ const Index = () => {
               appointments={appointments} 
               onAppointmentEdit={handleAppointmentEdit}
               onAppointmentDelete={handleAppointmentDelete}
+              employees={employees}
+              services={services}
+              businessHours={businessHours}
             />
           )}
           {view === "week" && (

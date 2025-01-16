@@ -1,25 +1,14 @@
-import React, { useState } from "react";
+import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { TeamPlanning } from "@/components/business/TeamPlanning";
 import { ExceptionDates } from "@/components/business/ExceptionDates";
 import { ServicesManagement } from "@/components/business/ServicesManagement";
-import { WeekSchedule } from "@/types/schedule";
-import { useToast } from "@/hooks/use-toast";
 import { Clock, Users, Calendar, Scissors } from "lucide-react";
-import { DEFAULT_BUSINESS_HOURS } from "@/constants/business";
 import { BusinessHours } from "@/components/business/BusinessHours";
+import { useBusinessStore } from "@/hooks/useBusinessStore";
 
 const Business = () => {
-  const [businessHours, setBusinessHours] = useState<WeekSchedule>(DEFAULT_BUSINESS_HOURS);
-  const { toast } = useToast();
-
-  const handleBusinessHoursChange = (newSchedule: WeekSchedule) => {
-    setBusinessHours(newSchedule);
-    toast({
-      title: "Business hours updated",
-      description: "Your business hours have been updated successfully.",
-    });
-  };
+  const { businessHours, updateBusinessHours } = useBusinessStore();
 
   return (
     <div className="container mx-auto p-6 space-y-6">
@@ -38,14 +27,14 @@ const Business = () => {
         <CardContent>
           <BusinessHours 
             initialSchedule={businessHours}
-            onScheduleChange={handleBusinessHoursChange}
+            onScheduleChange={updateBusinessHours}
           />
         </CardContent>
       </Card>
 
       <TeamPlanning 
         initialBusinessHours={businessHours}
-        onBusinessHoursChange={handleBusinessHoursChange}
+        onBusinessHoursChange={updateBusinessHours}
       />
 
       <Card>
