@@ -24,7 +24,8 @@ const defaultManager: Employee = {
 const STORAGE_KEYS = {
   EMPLOYEES: 'salon-employees',
   SERVICES: 'salon-services',
-  BUSINESS_HOURS: 'salon-business-hours'
+  BUSINESS_HOURS: 'salon-business-hours',
+  EXCEPTION_DATES: 'salon-exception-dates'
 };
 
 // Helper functions for localStorage
@@ -50,6 +51,7 @@ const setStoredData = <T>(key: string, data: T): void => {
 const initialEmployees = getStoredData(STORAGE_KEYS.EMPLOYEES, [defaultManager]);
 const initialServices = getStoredData(STORAGE_KEYS.SERVICES, defaultServices);
 const initialBusinessHours = getStoredData(STORAGE_KEYS.BUSINESS_HOURS, DEFAULT_BUSINESS_HOURS);
+const initialExceptionDates = getStoredData(STORAGE_KEYS.EXCEPTION_DATES, []);
 
 export const useBusinessStore = () => {
   const queryClient = useQueryClient();
@@ -72,14 +74,15 @@ export const useBusinessStore = () => {
     staleTime: Infinity,
   });
 
+  const { data: exceptionDates = initialExceptionDates } = useQuery({
+    queryKey: ['exceptionDates'],
+    queryFn: () => getStoredData(STORAGE_KEYS.EXCEPTION_DATES, initialExceptionDates),
+    staleTime: Infinity,
+  });
+
   const updateEmployees = (newEmployees: Employee[]) => {
-    // Ensure manager is always present
-    const hasManager = newEmployees.some(emp => emp.id === "manager");
-    const updatedEmployees = hasManager ? newEmployees : [defaultManager, ...newEmployees];
-    
-    // Update localStorage and React Query cache
-    setStoredData(STORAGE_KEYS.EMPLOYEES, updatedEmployees);
-    queryClient.setQueryData(['employees'], updatedEmployees);
+    setStoredData(STORAGE_KEYS.EMPLOYEES, newEmployees);
+    queryClient.setQueryData(['employees'], newEmployees);
   };
 
   const updateServices = (newServices: ServiceType[]) => {
@@ -92,12 +95,19 @@ export const useBusinessStore = () => {
     queryClient.setQueryData(['businessHours'], newHours);
   };
 
+  const updateExceptionDates = (newDates: Date[]) => {
+    setStoredData(STORAGE_KEYS.EXCEPTION_DATES, newDates);
+    queryClient.setQueryData(['exceptionDates'], newDates);
+  };
+
   return {
     employees,
     services,
     businessHours,
+    exceptionDates,
     updateEmployees,
     updateServices,
     updateBusinessHours,
+    updateExceptionDates,
   };
 };

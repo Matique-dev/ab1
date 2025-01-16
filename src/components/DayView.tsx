@@ -15,7 +15,7 @@ interface Appointment {
   duration: string;
   isWalkIn: boolean;
   date: Date;
-  serviceId?: string; // Add serviceId to track selected service
+  serviceId?: string;
 }
 
 interface DayViewProps {
@@ -23,6 +23,9 @@ interface DayViewProps {
   appointments: Appointment[];
   onAppointmentEdit: (appointment: Appointment) => void;
   onAppointmentDelete: (appointmentId: string) => void;
+  employees: Employee[];
+  services: ServiceType[];
+  businessHours: WeekSchedule;
 }
 
 export const DayView = ({ 
@@ -44,7 +47,7 @@ export const DayView = ({
     employees, 
     services, 
     businessHours,
-    exceptionDates = [] // This would come from backend later
+    exceptionDates = [] 
   } = useBusinessStore();
 
   useDayViewScroll(scrollContainerRef, HOUR_HEIGHT);
