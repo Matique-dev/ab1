@@ -55,7 +55,7 @@ const Business = () => {
             <CardTitle>Exception Dates</CardTitle>
           </div>
           <p className="text-sm text-muted-foreground">
-            Define exceptions to your Business Hours, such as planned business holidays and days where business hours are different than the standard.
+            Special closure dates & hours
           </p>
         </CardHeader>
         <CardContent>
