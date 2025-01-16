@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { ServiceCard } from "./ServiceCard";
 import { ServiceType } from '@/types/service';
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { useBusinessStore } from "@/hooks/useBusinessStore";
 
 export const ServicesManagement = () => {
@@ -19,13 +19,21 @@ export const ServicesManagement = () => {
       priceEur: 0,
       category: 'haircuts'
     };
-    updateServices([...services, newService]);
+    
+    const updatedServices = [...services, newService];
+    updateServices(updatedServices);
+    
+    toast({
+      title: "Service added",
+      description: "A new service has been added successfully.",
+    });
   };
 
   const handleUpdateService = (updatedService: ServiceType) => {
-    updateServices(services.map(service => 
+    const updatedServices = services.map(service => 
       service.id === updatedService.id ? updatedService : service
-    ));
+    );
+    updateServices(updatedServices);
     toast({
       title: "Service updated",
       description: `${updatedService.name} has been updated successfully.`,
@@ -33,7 +41,8 @@ export const ServicesManagement = () => {
   };
 
   const handleDeleteService = (id: string) => {
-    updateServices(services.filter(service => service.id !== id));
+    const updatedServices = services.filter(service => service.id !== id);
+    updateServices(updatedServices);
     toast({
       title: "Service deleted",
       description: "The service has been removed successfully.",

@@ -9,10 +9,6 @@ import { useToast } from "@/hooks/use-toast";
 import { Users, Plus } from "lucide-react";
 import { useBusinessStore } from "@/hooks/useBusinessStore";
 
-/**
- * Creates a default schedule for a new employee based on business hours
- * @param businessHours - The business operating hours
- */
 const createDefaultEmployeeSchedule = (businessHours: WeekSchedule) => {
   const schedule: { [key: string]: any } = {};
   Object.entries(businessHours).forEach(([day, hours]) => {
@@ -49,12 +45,13 @@ export const TeamPlanning: React.FC<TeamPlanningProps> = ({
     
     const newEmployee: Employee = {
       id: `employee-${Date.now()}`,
-      name: `Employee ${employees.length + 1}`,
+      name: `Employee ${employees.length}`,
       color: colors[colorIndex % colors.length],
       schedule: createDefaultEmployeeSchedule(initialBusinessHours),
     };
     
-    updateEmployees([...employees, newEmployee]);
+    const updatedEmployees = [...employees, newEmployee];
+    updateEmployees(updatedEmployees);
     setColorIndex(prev => prev + 1);
     
     toast({
@@ -64,7 +61,8 @@ export const TeamPlanning: React.FC<TeamPlanningProps> = ({
   };
 
   const handleRemoveEmployee = (employeeId: string) => {
-    updateEmployees(employees.filter((emp) => emp.id !== employeeId));
+    const updatedEmployees = employees.filter((emp) => emp.id !== employeeId);
+    updateEmployees(updatedEmployees);
     toast({
       title: "Employee removed",
       description: "The employee has been removed from the team.",
@@ -72,15 +70,17 @@ export const TeamPlanning: React.FC<TeamPlanningProps> = ({
   };
 
   const handleUpdateEmployeeSchedule = (employeeId: string, newSchedule: Employee['schedule']) => {
-    updateEmployees(employees.map((emp) =>
+    const updatedEmployees = employees.map((emp) =>
       emp.id === employeeId ? { ...emp, schedule: newSchedule } : emp
-    ));
+    );
+    updateEmployees(updatedEmployees);
   };
 
   const handleUpdateEmployee = (employeeId: string, updates: Partial<Employee>) => {
-    updateEmployees(employees.map((emp) =>
+    const updatedEmployees = employees.map((emp) =>
       emp.id === employeeId ? { ...emp, ...updates } : emp
-    ));
+    );
+    updateEmployees(updatedEmployees);
   };
 
   return (
