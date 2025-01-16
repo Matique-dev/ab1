@@ -43,8 +43,34 @@ export const AppointmentFormFields = ({
   availableEmployees = [],
   services = [],
 }: AppointmentFormFieldsProps) => {
-  const [selectedService, setSelectedService] = useState<ServiceType | undefined>(services[0]);
+  const [selectedService, setSelectedService] = useState<ServiceType | undefined>();
   const [customDuration, setCustomDuration] = useState(false);
+
+  useEffect(() => {
+    // Initialize selectedService based on the appointment's serviceId
+    if (services.length > 0) {
+      const service = services[0];
+      setSelectedService(service);
+      
+      // Only set duration if it's not already set in formData
+      if (!formData.duration) {
+        setFormData({
+          ...formData,
+          duration: service.durationMinutes.toString()
+        });
+      }
+    }
+  }, [services]);
+
+  useEffect(() => {
+    // Set custom duration flag if the duration doesn't match any service duration
+    if (formData.duration) {
+      const matchingService = services.find(
+        service => service.durationMinutes.toString() === formData.duration
+      );
+      setCustomDuration(!matchingService);
+    }
+  }, [formData.duration, services]);
 
   useEffect(() => {
     if (selectedService && !customDuration) {
@@ -54,19 +80,6 @@ export const AppointmentFormFields = ({
       });
     }
   }, [selectedService, customDuration]);
-
-  useEffect(() => {
-    // Set default values when component mounts
-    if (!formData.stylist) {
-      setFormData({
-        ...formData,
-        stylist: "anyone"
-      });
-    }
-    if (services.length > 0 && !selectedService) {
-      setSelectedService(services[0]);
-    }
-  }, []);
 
   // Add "Anyone" option to employees list
   const employeeOptions = [
