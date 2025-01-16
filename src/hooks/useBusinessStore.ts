@@ -3,16 +3,33 @@ import { Employee, WeekSchedule } from "@/types/schedule";
 import { ServiceType, defaultServices } from "@/types/service";
 import { DEFAULT_BUSINESS_HOURS } from "@/constants/business";
 
+// Default manager employee
+const defaultManager: Employee = {
+  id: "manager",
+  name: "Manager",
+  color: "#6557FF",
+  schedule: Object.keys(DEFAULT_BUSINESS_HOURS).reduce((acc, day) => ({
+    ...acc,
+    [day]: {
+      isAvailable: DEFAULT_BUSINESS_HOURS[day].isOpen,
+      workStart: DEFAULT_BUSINESS_HOURS[day].openTime,
+      workEnd: DEFAULT_BUSINESS_HOURS[day].closeTime,
+      lunchStart: "12:00",
+      lunchEnd: "13:00"
+    }
+  }), {})
+};
+
 // In-memory store since we don't have a backend yet
-let employeesStore: Employee[] = [];
+let employeesStore: Employee[] = [defaultManager];
 let servicesStore: ServiceType[] = defaultServices;
 let businessHoursStore: WeekSchedule = DEFAULT_BUSINESS_HOURS;
 
 export const useBusinessStore = () => {
-  const { data: employees = [] } = useQuery({
+  const { data: employees = [defaultManager] } = useQuery({
     queryKey: ['employees'],
     queryFn: () => employeesStore,
-    initialData: [],
+    initialData: [defaultManager],
   });
 
   const { data: services = defaultServices } = useQuery({
@@ -28,7 +45,9 @@ export const useBusinessStore = () => {
   });
 
   const updateEmployees = (newEmployees: Employee[]) => {
-    employeesStore = newEmployees;
+    // Ensure manager is always present
+    const hasManager = newEmployees.some(emp => emp.id === "manager");
+    employeesStore = hasManager ? newEmployees : [defaultManager, ...newEmployees];
   };
 
   const updateServices = (newServices: ServiceType[]) => {

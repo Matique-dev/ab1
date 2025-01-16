@@ -45,6 +45,16 @@ export const AppointmentFormFields = ({
     }
   }, [selectedService, customDuration]);
 
+  // Add "Anyone" option to employees list
+  const employeeOptions = [
+    {
+      id: "anyone",
+      name: "Anyone",
+      color: "#808080",
+    },
+    ...availableEmployees
+  ];
+
   return (
     <>
       <div className="space-y-2">
@@ -89,13 +99,14 @@ export const AppointmentFormFields = ({
           onValueChange={(value) =>
             setFormData({ ...formData, stylist: value })
           }
+          defaultValue="anyone"
           required
         >
           <SelectTrigger>
             <SelectValue placeholder="Select stylist" />
           </SelectTrigger>
           <SelectContent>
-            {availableEmployees.map((employee) => (
+            {employeeOptions.map((employee) => (
               <SelectItem key={employee.id} value={employee.id}>
                 {employee.name}
               </SelectItem>
