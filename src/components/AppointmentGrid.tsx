@@ -3,6 +3,8 @@ import { AppointmentCard } from "./AppointmentCard";
 import { AppointmentModal } from "./AppointmentModal";
 import { calculateAppointmentColumns, calculateAppointmentPosition } from "./AppointmentColumns";
 import { getStylistColor } from "@/utils/appointmentCalculations";
+import { Employee } from "@/types/schedule";
+import { ServiceType } from "@/types/service";
 
 interface Appointment {
   id: string;
@@ -12,6 +14,7 @@ interface Appointment {
   duration: string;
   isWalkIn: boolean;
   date: Date;
+  serviceId?: string;
 }
 
 interface AppointmentGridProps {
@@ -23,6 +26,8 @@ interface AppointmentGridProps {
   pageMarginPercent: number;
   onAppointmentEdit: (appointment: Appointment) => void;
   onAppointmentDelete: (appointmentId: string) => void;
+  employees: Employee[];
+  getServiceDetails: (serviceId?: string) => ServiceType | null;
 }
 
 export const AppointmentGrid = ({
@@ -34,12 +39,17 @@ export const AppointmentGrid = ({
   pageMarginPercent,
   onAppointmentEdit,
   onAppointmentDelete,
+  employees,
+  getServiceDetails,
 }: AppointmentGridProps) => {
-  // Filter appointments for the current day
   const dayAppointments = appointments.filter(apt => isSameDay(apt.date, date));
-  
-  // Calculate columns for all appointments at once
   const columnInfo = calculateAppointmentColumns(dayAppointments);
+
+  // Get employee color from employees array
+  const getEmployeeColor = (stylistId: string) => {
+    const employee = employees.find(emp => emp.id === stylistId);
+    return employee?.color || getStylistColor(stylistId);
+  };
 
   return (
     <div className="relative ml-16 mr-4 h-full z-10">
@@ -51,6 +61,8 @@ export const AppointmentGrid = ({
           hourHeight,
           pageMarginPercent
         );
+
+        const serviceDetails = getServiceDetails(apt.serviceId);
 
         return (
           <AppointmentModal
@@ -64,7 +76,8 @@ export const AppointmentGrid = ({
               <AppointmentCard
                 appointment={apt}
                 position={position}
-                colorClass={getStylistColor(apt.stylist)}
+                colorClass={getEmployeeColor(apt.stylist)}
+                serviceIcon={serviceDetails?.icon}
                 onClick={() => {}}
               />
             }

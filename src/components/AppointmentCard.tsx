@@ -1,39 +1,46 @@
 interface AppointmentCardProps {
   appointment: {
-    id: string;
     title: string;
-    stylist: string;
+    time: string;
     duration: string;
-    isWalkIn: boolean;
   };
   position: {
     top: number;
+    left: string;
     height: number;
     width: string;
-    left: string;
   };
   colorClass: string;
+  serviceIcon?: string;
   onClick: () => void;
 }
 
-export const AppointmentCard = ({ appointment, position, colorClass, onClick }: AppointmentCardProps) => {
+export const AppointmentCard = ({
+  appointment,
+  position,
+  colorClass,
+  serviceIcon,
+  onClick,
+}: AppointmentCardProps) => {
   return (
     <div
-      className={`absolute p-2 rounded border cursor-pointer hover:opacity-80 transition-opacity ${colorClass} ${
-        appointment.isWalkIn ? "border-dashed" : ""
-      }`}
+      className={`absolute rounded-lg p-2 cursor-pointer transition-colors hover:opacity-90 ${colorClass}`}
       style={{
         top: `${position.top}px`,
+        left: position.left,
         height: `${position.height}px`,
         width: position.width,
-        left: position.left,
       }}
       onClick={onClick}
     >
-      <div className="font-medium truncate">{appointment.title}</div>
-      <div className="text-sm text-gray-600 truncate">
-        {appointment.stylist.charAt(0).toUpperCase() + appointment.stylist.slice(1)} •{" "}
-        {appointment.duration} min
+      <div className="flex items-center gap-1">
+        {serviceIcon && (
+          <span className="text-white opacity-75">{serviceIcon}</span>
+        )}
+        <span className="font-medium text-white">{appointment.title}</span>
+      </div>
+      <div className="text-sm text-white/90">
+        {appointment.time} ({appointment.duration} min)
       </div>
     </div>
   );

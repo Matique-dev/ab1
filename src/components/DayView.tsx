@@ -5,6 +5,7 @@ import { AppointmentModal } from "./AppointmentModal";
 import { useDayViewScroll } from "@/hooks/useDayViewScroll";
 import { Employee, WeekSchedule } from "@/types/schedule";
 import { ServiceType } from "@/types/service";
+import { useBusinessStore } from "@/hooks/useBusinessStore";
 
 interface Appointment {
   id: string;
@@ -14,6 +15,7 @@ interface Appointment {
   duration: string;
   isWalkIn: boolean;
   date: Date;
+  serviceId?: string; // Add serviceId to track selected service
 }
 
 interface DayViewProps {
@@ -21,15 +23,6 @@ interface DayViewProps {
   appointments: Appointment[];
   onAppointmentEdit: (appointment: Appointment) => void;
   onAppointmentDelete: (appointmentId: string) => void;
-  employees?: Employee[];
-  services?: ServiceType[];
-  businessHours?: WeekSchedule;
-  exceptionDates?: Array<{
-    date: Date;
-    isAllDayOff: boolean;
-    openTime?: string;
-    closeTime?: string;
-  }>;
 }
 
 export const DayView = ({ 
@@ -37,18 +30,22 @@ export const DayView = ({
   appointments, 
   onAppointmentEdit,
   onAppointmentDelete,
-  employees = [],
-  services = [],
-  businessHours,
-  exceptionDates = []
 }: DayViewProps) => {
   const hours = Array.from({ length: 12 }, (_, i) => i + 9); // 9 AM to 8 PM
-  const HOUR_HEIGHT = 100; // Height in pixels for one hour
-  const START_HOUR = 9; // 9 AM
-  const PAGE_MARGIN_PERCENT = 2.5; // 2.5% margin from page edges
+  const HOUR_HEIGHT = 100;
+  const START_HOUR = 9;
+  const PAGE_MARGIN_PERCENT = 2.5;
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedTime, setSelectedTime] = useState<string>("");
+
+  // Get business configuration from the store
+  const { 
+    employees, 
+    services, 
+    businessHours,
+    exceptionDates = [] // This would come from backend later
+  } = useBusinessStore();
 
   useDayViewScroll(scrollContainerRef, HOUR_HEIGHT);
 
@@ -56,16 +53,11 @@ export const DayView = ({
     const container = scrollContainerRef.current;
     if (!container) return;
 
-    // Get click position relative to the container
     const rect = container.getBoundingClientRect();
     const relativeY = e.clientY - rect.top + container.scrollTop;
-
-    // Calculate the time based on the click position
     const totalMinutes = (relativeY / HOUR_HEIGHT) * 60;
     const hour = Math.floor(totalMinutes / 60) + START_HOUR;
     const minutes = Math.floor((totalMinutes % 60) / 30) * 30;
-
-    // Format the time string (HH:mm)
     const timeString = `${hour.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
     
     setSelectedTime(timeString);
@@ -78,6 +70,12 @@ export const DayView = ({
       id: Math.random().toString(36).substr(2, 9),
     };
     console.log("New appointment created:", newAppointment);
+  };
+
+  // Get service details for appointments
+  const getServiceDetails = (serviceId?: string) => {
+    if (!serviceId) return null;
+    return services.find(service => service.id === serviceId);
   };
 
   return (
@@ -101,6 +99,8 @@ export const DayView = ({
           pageMarginPercent={PAGE_MARGIN_PERCENT}
           onAppointmentEdit={onAppointmentEdit}
           onAppointmentDelete={onAppointmentDelete}
+          employees={employees}
+          getServiceDetails={getServiceDetails}
         />
       </div>
       <AppointmentModal
