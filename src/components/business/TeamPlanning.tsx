@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { DragDropContext, Droppable } from "@dnd-kit/core";
+import { DndContext } from "@dnd-kit/core";
 import { SortableContext } from "@dnd-kit/sortable";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -74,18 +74,22 @@ export const TeamPlanning: React.FC = () => {
         </p>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="space-y-4">
-          {employees.map((employee) => (
-            <EmployeeSchedule
-              key={employee.id}
-              employee={employee}
-              onRemove={() => handleRemoveEmployee(employee.id)}
-              onUpdateSchedule={(schedule) => handleUpdateEmployeeSchedule(employee.id, schedule)}
-              onUpdateEmployee={(updates) => handleUpdateEmployee(employee.id, updates)}
-              businessHours={businessHours}
-            />
-          ))}
-        </div>
+        <DndContext>
+          <SortableContext items={employees.map(emp => emp.id)}>
+            <div className="space-y-4">
+              {employees.map((employee) => (
+                <EmployeeSchedule
+                  key={employee.id}
+                  employee={employee}
+                  onRemove={() => handleRemoveEmployee(employee.id)}
+                  onUpdateSchedule={(schedule) => handleUpdateEmployeeSchedule(employee.id, schedule)}
+                  onUpdateEmployee={(updates) => handleUpdateEmployee(employee.id, updates)}
+                  businessHours={businessHours}
+                />
+              ))}
+            </div>
+          </SortableContext>
+        </DndContext>
         <Button onClick={handleAddEmployee} className="w-full">
           Add Employee
         </Button>
