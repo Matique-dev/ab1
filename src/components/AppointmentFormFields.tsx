@@ -149,7 +149,7 @@ export const AppointmentFormFields = ({
           defaultValue="anyone"
           required
         >
-          <SelectTrigger>
+          <SelectTrigger className="w-full">
             <SelectValue>
               {formData.stylist && (
                 <div className="flex items-center">
