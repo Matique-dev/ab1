@@ -3,6 +3,7 @@ import { DndContext } from "@dnd-kit/core";
 import { SortableContext } from "@dnd-kit/sortable";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { EmployeeSchedule } from "./EmployeeSchedule";
 import { Employee, EMPLOYEE_COLORS, WeekSchedule } from "@/types/schedule";
 import { useToast } from "@/hooks/use-toast";
@@ -23,6 +24,14 @@ const createDefaultEmployeeSchedule = (businessHours: WeekSchedule) => {
   return schedule;
 };
 
+// Default employee with new color
+const defaultEmployee: Employee = {
+  id: "employee-1",
+  name: "Stylist 1",
+  color: EMPLOYEE_COLORS.SECONDARY, // This is #AA3FFF
+  schedule: {},
+};
+
 interface TeamPlanningProps {
   initialBusinessHours: WeekSchedule;
   onBusinessHoursChange: (schedule: WeekSchedule) => void;
@@ -35,6 +44,18 @@ export const TeamPlanning: React.FC<TeamPlanningProps> = ({
   const { toast } = useToast();
   const { employees, updateEmployees } = useBusinessStore();
   const [colorIndex, setColorIndex] = React.useState(1);
+  const [defaultEmployeeId, setDefaultEmployeeId] = React.useState<string>("employee-1");
+
+  // Initialize with default employee if no employees exist
+  React.useEffect(() => {
+    if (employees.length === 0) {
+      const initialEmployee = {
+        ...defaultEmployee,
+        schedule: createDefaultEmployeeSchedule(initialBusinessHours)
+      };
+      updateEmployees([initialEmployee]);
+    }
+  }, []);
 
   const handleAddEmployee = () => {
     const colors = [
@@ -45,7 +66,7 @@ export const TeamPlanning: React.FC<TeamPlanningProps> = ({
     
     const newEmployee: Employee = {
       id: `employee-${Date.now()}`,
-      name: `Employee ${employees.length}`,
+      name: `Stylist ${employees.length + 1}`,
       color: colors[colorIndex % colors.length],
       schedule: createDefaultEmployeeSchedule(initialBusinessHours),
     };
@@ -61,6 +82,15 @@ export const TeamPlanning: React.FC<TeamPlanningProps> = ({
   };
 
   const handleRemoveEmployee = (employeeId: string) => {
+    if (employeeId === defaultEmployeeId) {
+      toast({
+        title: "Cannot remove default employee",
+        description: "Please select a new default employee first.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     const updatedEmployees = employees.filter((emp) => emp.id !== employeeId);
     updateEmployees(updatedEmployees);
     toast({
@@ -81,6 +111,14 @@ export const TeamPlanning: React.FC<TeamPlanningProps> = ({
       emp.id === employeeId ? { ...emp, ...updates } : emp
     );
     updateEmployees(updatedEmployees);
+  };
+
+  const handleDefaultEmployeeChange = (employeeId: string) => {
+    setDefaultEmployeeId(employeeId);
+    toast({
+      title: "Default employee updated",
+      description: `${employees.find(emp => emp.id === employeeId)?.name} is now the default employee.`,
+    });
   };
 
   return (
@@ -111,10 +149,43 @@ export const TeamPlanning: React.FC<TeamPlanningProps> = ({
             </div>
           </SortableContext>
         </DndContext>
-        <div className="flex justify-start">
+        <div className="flex justify-start items-center gap-4">
           <Button onClick={handleAddEmployee} className="w-auto">
             <Plus className="mr-2 h-4 w-4" /> Add Employee
           </Button>
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-medium">Main:</span>
+            <Select value={defaultEmployeeId} onValueChange={handleDefaultEmployeeChange}>
+              <SelectTrigger className="w-[200px]">
+                <SelectValue>
+                  <div className="flex items-center gap-2">
+                    <div 
+                      className="w-3 h-3 rounded-full"
+                      style={{ 
+                        backgroundColor: employees.find(emp => emp.id === defaultEmployeeId)?.color 
+                      }} 
+                    />
+                    <span>
+                      {employees.find(emp => emp.id === defaultEmployeeId)?.name}
+                    </span>
+                  </div>
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                {employees.map((employee) => (
+                  <SelectItem key={employee.id} value={employee.id}>
+                    <div className="flex items-center gap-2">
+                      <div 
+                        className="w-3 h-3 rounded-full"
+                        style={{ backgroundColor: employee.color }} 
+                      />
+                      <span>{employee.name}</span>
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
       </CardContent>
     </Card>
