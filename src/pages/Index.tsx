@@ -5,7 +5,6 @@ import { DayView } from "@/components/DayView";
 import { WeekView } from "@/components/WeekView";
 import { MonthView } from "@/components/MonthView";
 import { fr } from "date-fns/locale";
-import { WeekSchedule, ExceptionDate } from "@/utils/businessHours";
 
 interface Appointment {
   id: string;
@@ -21,20 +20,6 @@ const Index = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [view, setView] = useState<"day" | "week" | "month">("day");
   const [appointments, setAppointments] = useState<Appointment[]>([]);
-
-  // Default week schedule
-  const defaultWeekSchedule: WeekSchedule = {
-    monday: { isOpen: true, openTime: "09:00", closeTime: "17:00" },
-    tuesday: { isOpen: true, openTime: "09:00", closeTime: "17:00" },
-    wednesday: { isOpen: true, openTime: "09:00", closeTime: "17:00" },
-    thursday: { isOpen: true, openTime: "09:00", closeTime: "17:00" },
-    friday: { isOpen: true, openTime: "09:00", closeTime: "17:00" },
-    saturday: { isOpen: true, openTime: "10:00", closeTime: "15:00" },
-    sunday: { isOpen: false, openTime: "", closeTime: "" }
-  };
-
-  // Initialize empty exception dates array
-  const [exceptionDates] = useState<ExceptionDate[]>([]);
 
   const handleAppointmentCreate = (appointment: Omit<Appointment, "id">) => {
     const newAppointment = {
@@ -80,8 +65,6 @@ const Index = () => {
               appointments={appointments} 
               onAppointmentEdit={handleAppointmentEdit}
               onAppointmentDelete={handleAppointmentDelete}
-              weekSchedule={defaultWeekSchedule}
-              exceptionDates={exceptionDates}
             />
           )}
           {view === "week" && (
