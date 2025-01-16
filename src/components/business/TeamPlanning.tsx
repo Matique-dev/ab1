@@ -10,6 +10,11 @@ import { useToast } from "@/hooks/use-toast";
 import { Users, Plus } from "lucide-react";
 import { useBusinessStore } from "@/hooks/useBusinessStore";
 
+interface TeamPlanningProps {
+  initialBusinessHours: WeekSchedule;
+  onBusinessHoursChange: (hours: WeekSchedule) => void;
+}
+
 const createDefaultEmployeeSchedule = (businessHours: WeekSchedule) => {
   const schedule: { [key: string]: any } = {};
   Object.entries(businessHours).forEach(([day, hours]) => {
