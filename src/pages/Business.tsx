@@ -6,7 +6,7 @@ import { ServicesManagement } from "@/components/business/ServicesManagement";
 import { WeekSchedule } from "@/types/schedule";
 import { useToast } from "@/hooks/use-toast";
 import { BusinessHours } from "@/components/business/BusinessHours";
-import { Clock, Users, Calendar, Server } from "lucide-react";
+import { Clock, Users, Calendar, Scissors } from "lucide-react";
 
 const Business = () => {
   const [businessHours, setBusinessHours] = useState<WeekSchedule>(DEFAULT_BUSINESS_HOURS);
@@ -65,11 +65,11 @@ const Business = () => {
       <Card>
         <CardHeader className="space-y-1.5">
           <div className="flex items-center gap-2">
-            <Server className="h-6 w-6 text-muted-foreground" />
+            <Scissors className="h-6 w-6 text-muted-foreground" />
             <CardTitle>Services Management</CardTitle>
           </div>
           <p className="text-sm text-muted-foreground">
-            Manage the services your business offers
+            List your services, standard duration and price
           </p>
         </CardHeader>
         <CardContent>

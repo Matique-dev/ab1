@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Plus, Scissors } from "lucide-react";
 import { ServiceCard } from "./ServiceCard";
 import { ServiceType, defaultServices } from '@/types/service';
 import { useToast } from "@/components/ui/use-toast";
@@ -41,23 +41,27 @@ export const ServicesManagement = () => {
   };
 
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-        <CardTitle>Services</CardTitle>
+    <div className="space-y-4">
+      <div className="flex flex-row items-center justify-between space-y-0 pb-4">
+        <div className="flex items-center gap-2">
+          <Scissors className="h-6 w-6 text-muted-foreground" />
+          <CardTitle>Services Management</CardTitle>
+        </div>
         <Button onClick={handleAddService} className="ml-auto">
           <Plus className="mr-2 h-4 w-4" /> Add Service
         </Button>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        {services.map((service) => (
-          <ServiceCard
-            key={service.id}
-            service={service}
-            onUpdate={handleUpdateService}
-            onDelete={handleDeleteService}
-          />
-        ))}
-      </CardContent>
-    </Card>
+      </div>
+      <p className="text-sm text-muted-foreground">
+        List your services, standard duration and price
+      </p>
+      {services.map((service) => (
+        <ServiceCard
+          key={service.id}
+          service={service}
+          onUpdate={handleUpdateService}
+          onDelete={handleDeleteService}
+        />
+      ))}
+    </div>
   );
 };
