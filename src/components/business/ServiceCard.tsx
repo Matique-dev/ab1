@@ -3,7 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import * as LucideIcons from 'lucide-react';
+import { Scissors, Brush, Droplet, Trash2 } from 'lucide-react';
 import { ServiceType } from '@/types/service';
 
 interface ServiceCardProps {
@@ -14,11 +14,15 @@ interface ServiceCardProps {
 
 const durations = [15, 30, 45, 60, 90, 120];
 
+// Map of icon names to components
+const iconMap = {
+  scissors: Scissors,
+  brush: Brush,
+  droplet: Droplet
+};
+
 export const ServiceCard = ({ service, onUpdate, onDelete }: ServiceCardProps) => {
-  // Type assertion to ensure we get the correct icon component
-  const IconComponent = (LucideIcons as Record<string, React.ComponentType<any>>)[
-    service.icon as keyof typeof LucideIcons
-  ];
+  const IconComponent = iconMap[service.icon as keyof typeof iconMap];
 
   return (
     <Card className="mb-4">
@@ -71,7 +75,7 @@ export const ServiceCard = ({ service, onUpdate, onDelete }: ServiceCardProps) =
               className="text-salon-gray hover:text-destructive"
               onClick={() => onDelete(service.id)}
             >
-              <LucideIcons.Trash2 className="h-4 w-4" />
+              <Trash2 className="h-4 w-4" />
             </Button>
           </div>
         </div>
