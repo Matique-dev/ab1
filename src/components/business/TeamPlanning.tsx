@@ -4,7 +4,7 @@ import { SortableContext } from "@dnd-kit/sortable";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { EmployeeSchedule } from "./EmployeeSchedule";
-import { Employee, EMPLOYEE_COLORS } from "@/types/schedule";
+import { Employee, EMPLOYEE_COLORS, WeekSchedule } from "@/types/schedule";
 import { useToast } from "@/hooks/use-toast";
 import { Users, Plus } from "lucide-react";
 import { useBusinessStore } from "@/hooks/useBusinessStore";
@@ -13,7 +13,7 @@ import { useBusinessStore } from "@/hooks/useBusinessStore";
  * Creates a default schedule for a new employee based on business hours
  * @param businessHours - The business operating hours
  */
-const createDefaultEmployeeSchedule = (businessHours: any) => {
+const createDefaultEmployeeSchedule = (businessHours: WeekSchedule) => {
   const schedule: { [key: string]: any } = {};
   Object.entries(businessHours).forEach(([day, hours]) => {
     schedule[day] = {
@@ -28,8 +28,8 @@ const createDefaultEmployeeSchedule = (businessHours: any) => {
 };
 
 interface TeamPlanningProps {
-  initialBusinessHours: any;
-  onBusinessHoursChange: (schedule: any) => void;
+  initialBusinessHours: WeekSchedule;
+  onBusinessHoursChange: (schedule: WeekSchedule) => void;
 }
 
 export const TeamPlanning: React.FC<TeamPlanningProps> = ({
