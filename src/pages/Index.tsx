@@ -70,9 +70,6 @@ const Index = () => {
               appointments={appointments} 
               onAppointmentEdit={handleAppointmentEdit}
               onAppointmentDelete={handleAppointmentDelete}
-              employees={employees}
-              services={services}
-              businessHours={businessHours}
             />
           )}
           {view === "week" && (
