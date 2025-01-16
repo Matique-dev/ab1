@@ -1,3 +1,5 @@
+import { Scissors, Brush, Droplet } from 'lucide-react';
+
 interface AppointmentCardProps {
   appointment: {
     title: string;
