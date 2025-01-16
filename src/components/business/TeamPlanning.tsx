@@ -32,27 +32,6 @@ const createDefaultEmployeeSchedule = (businessHours: WeekSchedule) => {
   return schedule;
 };
 
-const adjustEmployeeSchedule = (employeeSchedule: Employee['schedule'], businessHours: WeekSchedule) => {
-  const newSchedule = { ...employeeSchedule };
-  Object.entries(businessHours).forEach(([day, hours]) => {
-    // If business is closed, employee can't work
-    if (!hours.isOpen) {
-      newSchedule[day].isAvailable = false;
-    }
-    
-    // Adjust start time if employee starts before business opens
-    if (newSchedule[day].workStart < hours.openTime) {
-      newSchedule[day].workStart = hours.openTime;
-    }
-    
-    // Adjust end time if employee ends after business closes
-    if (newSchedule[day].workEnd > hours.closeTime) {
-      newSchedule[day].workEnd = hours.closeTime;
-    }
-  });
-  return newSchedule;
-};
-
 interface TeamPlanningProps {
   initialBusinessHours: WeekSchedule;
   onBusinessHoursChange: (schedule: WeekSchedule) => void;
@@ -63,7 +42,6 @@ export const TeamPlanning: React.FC<TeamPlanningProps> = ({
   onBusinessHoursChange
 }) => {
   const { toast } = useToast();
-  const [businessHours, setBusinessHours] = useState<WeekSchedule>(initialBusinessHours);
   const [employees, setEmployees] = useState<Employee[]>([
     {
       id: "manager",
@@ -73,25 +51,12 @@ export const TeamPlanning: React.FC<TeamPlanningProps> = ({
     },
   ]);
 
-  const handleBusinessHoursChange = (newBusinessHours: WeekSchedule) => {
-    setBusinessHours(newBusinessHours);
-    onBusinessHoursChange(newBusinessHours);
-    
-    // Update all employees' schedules to respect new business hours
-    setEmployees(prevEmployees => 
-      prevEmployees.map(employee => ({
-        ...employee,
-        schedule: adjustEmployeeSchedule(employee.schedule, newBusinessHours)
-      }))
-    );
-  };
-
   const handleAddEmployee = () => {
     const newEmployee: Employee = {
       id: `employee-${employees.length + 1}`,
       name: `Employee ${employees.length + 1}`,
       color: `#${Math.floor(Math.random()*16777215).toString(16)}`,
-      schedule: createDefaultEmployeeSchedule(businessHours),
+      schedule: createDefaultEmployeeSchedule(initialBusinessHours),
     };
     setEmployees([...employees, newEmployee]);
   };
@@ -101,11 +66,8 @@ export const TeamPlanning: React.FC<TeamPlanningProps> = ({
   };
 
   const handleUpdateEmployeeSchedule = (employeeId: string, newSchedule: Employee['schedule']) => {
-    // Ensure the new schedule respects business hours
-    const adjustedSchedule = adjustEmployeeSchedule(newSchedule, businessHours);
-    
     setEmployees(employees.map((emp) =>
-      emp.id === employeeId ? { ...emp, schedule: adjustedSchedule } : emp
+      emp.id === employeeId ? { ...emp, schedule: newSchedule } : emp
     ));
   };
 
@@ -119,7 +81,7 @@ export const TeamPlanning: React.FC<TeamPlanningProps> = ({
     <Card>
       <CardHeader className="space-y-1.5">
         <CardTitle>Team Planning</CardTitle>
-        <p className="text-sm text-salon-gray">
+        <p className="text-sm text-muted-foreground">
           Manage your team's schedule and availability.
         </p>
       </CardHeader>
@@ -130,8 +92,8 @@ export const TeamPlanning: React.FC<TeamPlanningProps> = ({
           </CardHeader>
           <CardContent>
             <BusinessHours 
-              initialSchedule={businessHours}
-              onScheduleChange={handleBusinessHoursChange}
+              initialSchedule={initialBusinessHours}
+              onScheduleChange={onBusinessHoursChange}
             />
           </CardContent>
         </Card>
@@ -146,7 +108,7 @@ export const TeamPlanning: React.FC<TeamPlanningProps> = ({
                   onRemove={() => handleRemoveEmployee(employee.id)}
                   onUpdateSchedule={(schedule) => handleUpdateEmployeeSchedule(employee.id, schedule)}
                   onUpdateEmployee={(updates) => handleUpdateEmployee(employee.id, updates)}
-                  businessHours={businessHours}
+                  businessHours={initialBusinessHours}
                 />
               ))}
             </div>
