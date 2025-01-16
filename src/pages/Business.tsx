@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { EmployeeManagement } from "@/components/business/EmployeeManagement";
 import { BusinessHours } from "@/components/business/BusinessHours";
 import { ExceptionDates } from "@/components/business/ExceptionDates";
+import { ServicesManagement } from "@/components/business/ServicesManagement";
 
 const Business = () => {
   return (
@@ -38,14 +39,7 @@ const Business = () => {
         </CardContent>
       </Card>
 
-      <Card className="opacity-50">
-        <CardHeader>
-          <CardTitle>Services</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-muted-foreground">Coming soon...</p>
-        </CardContent>
-      </Card>
+      <ServicesManagement />
     </div>
   );
 };
