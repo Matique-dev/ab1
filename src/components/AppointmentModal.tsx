@@ -10,10 +10,10 @@ import { useState, useEffect } from "react";
 import { useAppointmentForm } from "@/hooks/useAppointmentForm";
 import { useAppointmentModal } from "@/hooks/useAppointmentModal";
 import { AppointmentModalContent } from "./AppointmentModalContent";
-import { Employee, WeekSchedule } from "@/types/schedule";
-import { ServiceType } from "@/types/service";
+import { Employee } from "@/types/schedule";
 import { format } from "date-fns";
 import { isWithinBusinessHours } from "@/utils/timeUtils";
+import { useBusinessStore } from "@/hooks/useBusinessStore";
 
 interface Appointment {
   id?: string;
@@ -35,15 +35,6 @@ interface AppointmentModalProps {
   isOpen?: boolean;
   onOpenChange?: (open: boolean) => void;
   defaultTime?: string;
-  employees?: Employee[];
-  services?: ServiceType[];
-  businessHours?: WeekSchedule;
-  exceptionDates?: Array<{
-    date: Date;
-    isAllDayOff: boolean;
-    openTime?: string;
-    closeTime?: string;
-  }>;
 }
 
 export const AppointmentModal = ({ 
@@ -56,10 +47,6 @@ export const AppointmentModal = ({
   isOpen: controlledIsOpen,
   onOpenChange: controlledOnOpenChange,
   defaultTime,
-  employees = [],
-  services = [],
-  businessHours,
-  exceptionDates = []
 }: AppointmentModalProps) => {
   const [internalIsOpen, setInternalIsOpen] = useState(false);
   const isOpen = controlledIsOpen ?? internalIsOpen;
@@ -72,6 +59,14 @@ export const AppointmentModal = ({
     onAppointmentDelete,
     onOpenChange,
   });
+
+  // Get all business configuration from the store
+  const { 
+    employees = [], 
+    services = [], 
+    businessHours,
+    exceptionDates = [] 
+  } = useBusinessStore();
 
   useEffect(() => {
     if (isOpen && defaultTime) {

@@ -3,9 +3,6 @@ import { AppointmentGrid } from "./AppointmentGrid";
 import { useRef, useState } from "react";
 import { AppointmentModal } from "./AppointmentModal";
 import { useDayViewScroll } from "@/hooks/useDayViewScroll";
-import { Employee, WeekSchedule } from "@/types/schedule";
-import { ServiceType } from "@/types/service";
-import { useBusinessStore } from "@/hooks/useBusinessStore";
 
 interface Appointment {
   id: string;
@@ -39,14 +36,6 @@ export const DayView = ({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedTime, setSelectedTime] = useState<string>("");
 
-  // Get all business configuration from the store
-  const { 
-    employees, 
-    services, 
-    businessHours,
-    exceptionDates = [] 
-  } = useBusinessStore();
-
   useDayViewScroll(scrollContainerRef, HOUR_HEIGHT);
 
   const handleDoubleClick = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -72,12 +61,6 @@ export const DayView = ({
     console.log("New appointment created:", newAppointment);
   };
 
-  // Get service details for appointments
-  const getServiceDetails = (serviceId?: string) => {
-    if (!serviceId) return null;
-    return services.find(service => service.id === serviceId);
-  };
-
   return (
     <>
       <div 
@@ -99,8 +82,6 @@ export const DayView = ({
           pageMarginPercent={PAGE_MARGIN_PERCENT}
           onAppointmentEdit={onAppointmentEdit}
           onAppointmentDelete={onAppointmentDelete}
-          employees={employees}
-          getServiceDetails={getServiceDetails}
         />
       </div>
       <AppointmentModal
@@ -110,10 +91,6 @@ export const DayView = ({
         isOpen={isModalOpen}
         onOpenChange={setIsModalOpen}
         defaultTime={selectedTime}
-        employees={employees}
-        services={services}
-        businessHours={businessHours}
-        exceptionDates={exceptionDates}
       />
     </>
   );
