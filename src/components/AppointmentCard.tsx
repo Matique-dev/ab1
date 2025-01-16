@@ -22,10 +22,33 @@ export const AppointmentCard = ({
   serviceIcon,
   onClick,
 }: AppointmentCardProps) => {
+  // Convert hex color to RGB for opacity handling
+  const hexToRgb = (hex: string) => {
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    return result ? {
+      r: parseInt(result[1], 16),
+      g: parseInt(result[2], 16),
+      b: parseInt(result[3], 16)
+    } : null;
+  };
+
+  // Default color for 'Anyone'
+  const defaultColor = '#6557FF';
+  
+  // Get the base color (either from props or default)
+  const baseColor = colorClass.startsWith('#') ? colorClass : defaultColor;
+  
+  // Convert to RGB and add opacity
+  const rgbColor = hexToRgb(baseColor);
+  const backgroundStyle = rgbColor 
+    ? { backgroundColor: `rgba(${rgbColor.r}, ${rgbColor.g}, ${rgbColor.b}, 0.4)` }
+    : {};
+
   return (
     <div
-      className={`absolute rounded-lg p-2 cursor-pointer transition-colors hover:opacity-90 ${colorClass}`}
+      className="absolute rounded-lg p-2 cursor-pointer transition-colors hover:opacity-90"
       style={{
+        ...backgroundStyle,
         top: `${position.top}px`,
         left: position.left,
         height: `${position.height}px`,
@@ -35,11 +58,11 @@ export const AppointmentCard = ({
     >
       <div className="flex items-center gap-1">
         {serviceIcon && (
-          <span className="text-white opacity-75">{serviceIcon}</span>
+          <span className="text-foreground">{serviceIcon}</span>
         )}
-        <span className="font-medium text-white">{appointment.title}</span>
+        <span className="font-medium text-foreground">{appointment.title}</span>
       </div>
-      <div className="text-sm text-white/90">
+      <div className="text-sm text-foreground/90">
         {appointment.time} ({appointment.duration} min)
       </div>
     </div>
