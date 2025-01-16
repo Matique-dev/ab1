@@ -81,10 +81,8 @@ export const TeamPlanning: React.FC<TeamPlanningProps> = ({
     });
   };
 
-  const isDefaultEmployee = (employeeId: string) => employeeId === defaultEmployeeId;
-
   const handleRemoveEmployee = (employeeId: string) => {
-    if (isDefaultEmployee(employeeId)) {
+    if (employeeId === defaultEmployeeId) {
       toast({
         title: "Cannot remove default employee",
         description: "Please select a new default employee first.",
@@ -146,13 +144,12 @@ export const TeamPlanning: React.FC<TeamPlanningProps> = ({
                   onUpdateSchedule={(schedule) => handleUpdateEmployeeSchedule(employee.id, schedule)}
                   onUpdateEmployee={(updates) => handleUpdateEmployee(employee.id, updates)}
                   businessHours={initialBusinessHours}
-                  isDefault={isDefaultEmployee(employee.id)}
                 />
               ))}
             </div>
           </SortableContext>
         </DndContext>
-        <div className="flex justify-between items-center">
+        <div className="flex justify-start items-center gap-4">
           <Button onClick={handleAddEmployee} className="w-auto">
             <Plus className="mr-2 h-4 w-4" /> Add Employee
           </Button>
