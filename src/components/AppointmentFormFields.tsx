@@ -29,7 +29,6 @@ interface AppointmentFormFieldsProps {
   services: ServiceType[];
 }
 
-// Map of icon names to components
 const iconMap = {
   scissors: Scissors,
   brush: Brush,
@@ -47,48 +46,35 @@ export const AppointmentFormFields = ({
   const [selectedService, setSelectedService] = useState<ServiceType | undefined>();
   const [customDuration, setCustomDuration] = useState(false);
 
+  // Initialize form data only once when component mounts or when appointment changes
   useEffect(() => {
-    // Initialize selectedService based on the appointment's serviceId
-    if (services.length > 0) {
+    if (services.length > 0 && formData) {
       const service = formData.serviceId 
         ? services.find(s => s.id === formData.serviceId) 
-        : services[0];
-        
+        : undefined;
+      
       if (service) {
         setSelectedService(service);
         
-        // Only set duration if it's not already set in formData
-        if (!formData.duration) {
-          setFormData({
-            ...formData,
-            duration: service.durationMinutes.toString()
-          });
-        }
+        // Check if duration differs from service duration to set custom duration flag
+        setCustomDuration(
+          service.durationMinutes.toString() !== formData.duration
+        );
       }
     }
-  }, [services, formData.serviceId]);
+  }, [services, formData.serviceId]); // Only depend on these two values
 
-  useEffect(() => {
-    // Set custom duration flag if the duration doesn't match any service duration
-    if (formData.duration) {
-      const matchingService = services.find(
-        service => service.durationMinutes.toString() === formData.duration
-      );
-      setCustomDuration(!matchingService);
-    }
-  }, [formData.duration, services]);
-
+  // Handle duration updates when service changes
   useEffect(() => {
     if (selectedService && !customDuration) {
-      setFormData({
-        ...formData,
+      setFormData(prev => ({
+        ...prev,
         duration: selectedService.durationMinutes.toString(),
         serviceId: selectedService.id
-      });
+      }));
     }
   }, [selectedService, customDuration]);
 
-  // Add "Anyone" option to employees list
   const employeeOptions = [
     {
       id: "anyone",
