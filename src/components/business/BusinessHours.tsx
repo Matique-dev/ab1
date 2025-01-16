@@ -4,16 +4,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Switch } from "@/components/ui/switch";
-
-type DaySchedule = {
-  isOpen: boolean;
-  openTime: string;
-  closeTime: string;
-};
-
-type WeekSchedule = {
-  [key: string]: DaySchedule;
-};
+import { WeekSchedule } from "@/types/schedule";
 
 const DAYS = [
   { value: "monday", label: "Mon" },
@@ -30,42 +21,43 @@ const HOURS = Array.from({ length: 24 }, (_, i) => {
   return { value: `${hour}:00`, label: `${hour}:00` };
 });
 
-const DEFAULT_SCHEDULE: WeekSchedule = {
-  monday: { isOpen: false, openTime: "09:00", closeTime: "20:00" },
-  tuesday: { isOpen: true, openTime: "09:00", closeTime: "20:00" },
-  wednesday: { isOpen: true, openTime: "09:00", closeTime: "20:00" },
-  thursday: { isOpen: true, openTime: "09:00", closeTime: "20:00" },
-  friday: { isOpen: true, openTime: "09:00", closeTime: "20:00" },
-  saturday: { isOpen: true, openTime: "09:00", closeTime: "20:00" },
-  sunday: { isOpen: true, openTime: "09:00", closeTime: "20:00" },
-};
+interface BusinessHoursProps {
+  initialSchedule: WeekSchedule;
+  onScheduleChange: (schedule: WeekSchedule) => void;
+}
 
-export const BusinessHours = () => {
+export const BusinessHours: React.FC<BusinessHoursProps> = ({ 
+  initialSchedule,
+  onScheduleChange 
+}) => {
   const { toast } = useToast();
-  const [schedule, setSchedule] = React.useState<WeekSchedule>(DEFAULT_SCHEDULE);
+  const [schedule, setSchedule] = React.useState<WeekSchedule>(initialSchedule);
 
   const handleTimeChange = (day: string, type: 'openTime' | 'closeTime', value: string) => {
-    setSchedule(prev => ({
-      ...prev,
+    const newSchedule = {
+      ...schedule,
       [day]: {
-        ...prev[day],
+        ...schedule[day],
         [type]: value
       }
-    }));
+    };
+    setSchedule(newSchedule);
+    onScheduleChange(newSchedule);
   };
 
   const handleToggleDay = (day: string) => {
-    setSchedule(prev => ({
-      ...prev,
+    const newSchedule = {
+      ...schedule,
       [day]: {
-        ...prev[day],
-        isOpen: !prev[day].isOpen
+        ...schedule[day],
+        isOpen: !schedule[day].isOpen
       }
-    }));
+    };
+    setSchedule(newSchedule);
+    onScheduleChange(newSchedule);
   };
 
   const handleSave = () => {
-    // Here you would typically save to your backend
     toast({
       title: "Business hours updated",
       description: "Your business hours have been saved successfully.",

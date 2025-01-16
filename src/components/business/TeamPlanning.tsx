@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { EmployeeSchedule } from "./EmployeeSchedule";
 import { Employee, WeekSchedule } from "@/types/schedule";
 import { useToast } from "@/hooks/use-toast";
+import { BusinessHours } from "./BusinessHours";
 
 export const DEFAULT_BUSINESS_HOURS: WeekSchedule = {
   monday: { isOpen: true, openTime: "09:00", closeTime: "17:00" },
@@ -31,6 +32,27 @@ const createDefaultEmployeeSchedule = (businessHours: WeekSchedule) => {
   return schedule;
 };
 
+const adjustEmployeeSchedule = (employeeSchedule: Employee['schedule'], businessHours: WeekSchedule) => {
+  const newSchedule = { ...employeeSchedule };
+  Object.entries(businessHours).forEach(([day, hours]) => {
+    // If business is closed, employee can't work
+    if (!hours.isOpen) {
+      newSchedule[day].isAvailable = false;
+    }
+    
+    // Adjust start time if employee starts before business opens
+    if (newSchedule[day].workStart < hours.openTime) {
+      newSchedule[day].workStart = hours.openTime;
+    }
+    
+    // Adjust end time if employee ends after business closes
+    if (newSchedule[day].workEnd > hours.closeTime) {
+      newSchedule[day].workEnd = hours.closeTime;
+    }
+  });
+  return newSchedule;
+};
+
 export const TeamPlanning: React.FC = () => {
   const { toast } = useToast();
   const [businessHours, setBusinessHours] = useState<WeekSchedule>(DEFAULT_BUSINESS_HOURS);
@@ -42,6 +64,18 @@ export const TeamPlanning: React.FC = () => {
       schedule: createDefaultEmployeeSchedule(DEFAULT_BUSINESS_HOURS),
     },
   ]);
+
+  const handleBusinessHoursChange = (newBusinessHours: WeekSchedule) => {
+    setBusinessHours(newBusinessHours);
+    
+    // Update all employees' schedules to respect new business hours
+    setEmployees(prevEmployees => 
+      prevEmployees.map(employee => ({
+        ...employee,
+        schedule: adjustEmployeeSchedule(employee.schedule, newBusinessHours)
+      }))
+    );
+  };
 
   const handleAddEmployee = () => {
     const newEmployee: Employee = {
@@ -58,8 +92,11 @@ export const TeamPlanning: React.FC = () => {
   };
 
   const handleUpdateEmployeeSchedule = (employeeId: string, newSchedule: Employee['schedule']) => {
+    // Ensure the new schedule respects business hours
+    const adjustedSchedule = adjustEmployeeSchedule(newSchedule, businessHours);
+    
     setEmployees(employees.map((emp) =>
-      emp.id === employeeId ? { ...emp, schedule: newSchedule } : emp
+      emp.id === employeeId ? { ...emp, schedule: adjustedSchedule } : emp
     ));
   };
 
@@ -78,6 +115,18 @@ export const TeamPlanning: React.FC = () => {
         </p>
       </CardHeader>
       <CardContent className="space-y-4">
+        <Card>
+          <CardHeader>
+            <CardTitle>Business Hours</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <BusinessHours 
+              initialSchedule={businessHours}
+              onScheduleChange={handleBusinessHoursChange}
+            />
+          </CardContent>
+        </Card>
+
         <DndContext>
           <SortableContext items={employees.map(emp => emp.id)}>
             <div className="space-y-4">
