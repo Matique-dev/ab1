@@ -24,7 +24,7 @@ interface FormData {
 
 interface AppointmentFormFieldsProps {
   formData: FormData;
-  setFormData: (data: FormData) => void;
+  setFormData: React.Dispatch<React.SetStateAction<FormData>>;
   availableEmployees: Employee[];
   services: ServiceType[];
 }
@@ -46,7 +46,6 @@ export const AppointmentFormFields = ({
   const [selectedService, setSelectedService] = useState<ServiceType | undefined>();
   const [customDuration, setCustomDuration] = useState(false);
 
-  // Initialize form data only once when component mounts or when appointment changes
   useEffect(() => {
     if (services.length > 0 && formData) {
       const service = formData.serviceId 
@@ -55,25 +54,22 @@ export const AppointmentFormFields = ({
       
       if (service) {
         setSelectedService(service);
-        
-        // Check if duration differs from service duration to set custom duration flag
         setCustomDuration(
           service.durationMinutes.toString() !== formData.duration
         );
       }
     }
-  }, [services, formData.serviceId]); // Only depend on these two values
+  }, [services, formData.serviceId]);
 
-  // Handle duration updates when service changes
   useEffect(() => {
     if (selectedService && !customDuration) {
-      setFormData(prev => ({
+      setFormData((prev: FormData) => ({
         ...prev,
         duration: selectedService.durationMinutes.toString(),
         serviceId: selectedService.id
       }));
     }
-  }, [selectedService, customDuration]);
+  }, [selectedService, customDuration, setFormData]);
 
   const employeeOptions = [
     {
@@ -265,4 +261,3 @@ export const AppointmentFormFields = ({
       </div>
     </>
   );
-};

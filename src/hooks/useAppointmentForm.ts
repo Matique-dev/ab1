@@ -9,6 +9,7 @@ interface Appointment {
   duration: string;
   isWalkIn: boolean;
   date: Date;
+  serviceId?: string;
 }
 
 interface FormData {
@@ -18,6 +19,7 @@ interface FormData {
   duration: string;
   isWalkIn: boolean;
   selectedDate: string;
+  serviceId?: string;
 }
 
 export const useAppointmentForm = (
@@ -31,7 +33,8 @@ export const useAppointmentForm = (
     time: "",
     duration: "60",
     isWalkIn: false,
-    selectedDate: format(currentDate, 'yyyy-MM-dd')
+    selectedDate: format(currentDate, 'yyyy-MM-dd'),
+    serviceId: undefined
   });
 
   useEffect(() => {
@@ -43,7 +46,8 @@ export const useAppointmentForm = (
           time: format(appointment.date, 'HH:mm'),
           duration: appointment.duration,
           isWalkIn: appointment.isWalkIn,
-          selectedDate: format(appointment.date, 'yyyy-MM-dd')
+          selectedDate: format(appointment.date, 'yyyy-MM-dd'),
+          serviceId: appointment.serviceId
         });
       } else {
         setFormData({
@@ -52,7 +56,8 @@ export const useAppointmentForm = (
           time: "",
           duration: "60",
           isWalkIn: false,
-          selectedDate: format(currentDate, 'yyyy-MM-dd')
+          selectedDate: format(currentDate, 'yyyy-MM-dd'),
+          serviceId: undefined
         });
       }
     }
