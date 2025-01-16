@@ -8,7 +8,7 @@ export type DaySchedule = {
 
 export type WeekSchedule = {
   [key: string]: {
-    isAvailable: boolean;
+    isOpen: boolean;
     openTime: string;
     closeTime: string;
   };
