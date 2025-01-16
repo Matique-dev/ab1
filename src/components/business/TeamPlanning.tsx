@@ -53,20 +53,29 @@ const adjustEmployeeSchedule = (employeeSchedule: Employee['schedule'], business
   return newSchedule;
 };
 
-export const TeamPlanning: React.FC = () => {
+interface TeamPlanningProps {
+  initialBusinessHours: WeekSchedule;
+  onBusinessHoursChange: (schedule: WeekSchedule) => void;
+}
+
+export const TeamPlanning: React.FC<TeamPlanningProps> = ({
+  initialBusinessHours,
+  onBusinessHoursChange
+}) => {
   const { toast } = useToast();
-  const [businessHours, setBusinessHours] = useState<WeekSchedule>(DEFAULT_BUSINESS_HOURS);
+  const [businessHours, setBusinessHours] = useState<WeekSchedule>(initialBusinessHours);
   const [employees, setEmployees] = useState<Employee[]>([
     {
       id: "manager",
       name: "Manager",
       color: "#FF0000",
-      schedule: createDefaultEmployeeSchedule(DEFAULT_BUSINESS_HOURS),
+      schedule: createDefaultEmployeeSchedule(initialBusinessHours),
     },
   ]);
 
   const handleBusinessHoursChange = (newBusinessHours: WeekSchedule) => {
     setBusinessHours(newBusinessHours);
+    onBusinessHoursChange(newBusinessHours);
     
     // Update all employees' schedules to respect new business hours
     setEmployees(prevEmployees => 

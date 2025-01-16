@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { TeamPlanning, DEFAULT_BUSINESS_HOURS } from "@/components/business/TeamPlanning";
-import { BusinessHours } from "@/components/business/BusinessHours";
 import { ExceptionDates } from "@/components/business/ExceptionDates";
 import { ServicesManagement } from "@/components/business/ServicesManagement";
 import { WeekSchedule } from "@/types/schedule";
@@ -23,22 +22,10 @@ const Business = () => {
     <div className="container mx-auto p-6 space-y-6">
       <h1 className="text-3xl font-bold mb-6">Business Settings</h1>
       
-      <TeamPlanning />
-
-      <Card>
-        <CardHeader className="space-y-1.5">
-          <CardTitle>Business Hours</CardTitle>
-          <p className="text-sm text-muted-foreground">
-            Set the opening hours for your business, during your standard week.
-          </p>
-        </CardHeader>
-        <CardContent>
-          <BusinessHours 
-            initialSchedule={businessHours}
-            onScheduleChange={handleBusinessHoursChange}
-          />
-        </CardContent>
-      </Card>
+      <TeamPlanning 
+        initialBusinessHours={businessHours}
+        onBusinessHoursChange={handleBusinessHoursChange}
+      />
 
       <Card>
         <CardHeader className="space-y-1.5">
@@ -48,7 +35,7 @@ const Business = () => {
           </p>
         </CardHeader>
         <CardContent>
-          <ExceptionDates />
+          <ExceptionDates businessHours={businessHours} />
         </CardContent>
       </Card>
 

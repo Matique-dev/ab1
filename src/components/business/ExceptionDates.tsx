@@ -1,11 +1,11 @@
 import React from "react";
 import { Calendar } from "@/components/ui/calendar";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { CalendarX2, Clock } from "lucide-react";
+import { WeekSchedule } from "@/types/schedule";
 
 type ExceptionDate = {
   date: Date;
@@ -14,18 +14,41 @@ type ExceptionDate = {
   closeTime?: string;
 };
 
-const HOURS = Array.from({ length: 24 }, (_, i) => {
-  const hour = i.toString().padStart(2, "0");
-  return { value: `${hour}:00`, label: `${hour}:00` };
-});
+// Generate hours based on business hours range
+const generateHoursOptions = (businessHours: WeekSchedule) => {
+  const allHours = new Set<string>();
+  Object.values(businessHours).forEach(({ openTime, closeTime }) => {
+    const [openHour] = openTime.split(':');
+    const [closeHour] = closeTime.split(':');
+    const start = parseInt(openHour);
+    const end = parseInt(closeHour);
+    
+    for (let i = start; i <= end; i++) {
+      const hour = i.toString().padStart(2, '0');
+      allHours.add(`${hour}:00`);
+      allHours.add(`${hour}:30`);
+    }
+  });
+  
+  return Array.from(allHours).sort().map(time => ({
+    value: time,
+    label: time,
+  }));
+};
 
-export const ExceptionDates = () => {
+interface ExceptionDatesProps {
+  businessHours: WeekSchedule;
+}
+
+export const ExceptionDates: React.FC<ExceptionDatesProps> = ({ businessHours }) => {
   const { toast } = useToast();
   const [selectedDate, setSelectedDate] = React.useState<Date | undefined>(undefined);
   const [exceptions, setExceptions] = React.useState<ExceptionDate[]>([]);
   const [isAllDayOff, setIsAllDayOff] = React.useState(true);
   const [openTime, setOpenTime] = React.useState("09:00");
   const [closeTime, setCloseTime] = React.useState("17:00");
+
+  const HOURS = generateHoursOptions(businessHours);
 
   const handleAddException = () => {
     if (!selectedDate) return;
