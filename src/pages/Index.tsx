@@ -5,6 +5,7 @@ import { DayView } from "@/components/DayView";
 import { WeekView } from "@/components/WeekView";
 import { MonthView } from "@/components/MonthView";
 import { fr } from "date-fns/locale";
+import { useToast } from "@/components/ui/use-toast";
 
 interface Appointment {
   id: string;
@@ -14,29 +15,58 @@ interface Appointment {
   duration: string;
   isWalkIn: boolean;
   date: Date;
+  serviceId?: string;
 }
 
 const Index = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [view, setView] = useState<"day" | "week" | "month">("day");
   const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const { toast } = useToast();
 
   const handleAppointmentCreate = (appointment: Omit<Appointment, "id">) => {
     const newAppointment = {
       ...appointment,
       id: Math.random().toString(36).substr(2, 9),
     };
-    setAppointments([...appointments, newAppointment]);
+    setAppointments(prev => [...prev, newAppointment]);
+    toast({
+      title: "Appointment created",
+      description: "The appointment has been successfully scheduled.",
+    });
   };
 
   const handleAppointmentEdit = (updatedAppointment: Appointment) => {
-    setAppointments(appointments.map(apt => 
-      apt.id === updatedAppointment.id ? updatedAppointment : apt
-    ));
+    setAppointments(prevAppointments => {
+      const existingAppointment = prevAppointments.find(
+        apt => apt.id === updatedAppointment.id
+      );
+
+      if (existingAppointment) {
+        // Update existing appointment
+        return prevAppointments.map(apt =>
+          apt.id === updatedAppointment.id ? updatedAppointment : apt
+        );
+      } else {
+        // Add new appointment
+        return [...prevAppointments, updatedAppointment];
+      }
+    });
+
+    toast({
+      title: "Appointment updated",
+      description: "The appointment has been successfully updated.",
+    });
   };
 
   const handleAppointmentDelete = (appointmentId: string) => {
-    setAppointments(appointments.filter(apt => apt.id !== appointmentId));
+    setAppointments(prevAppointments => 
+      prevAppointments.filter(apt => apt.id !== appointmentId)
+    );
+    toast({
+      title: "Appointment deleted",
+      description: "The appointment has been successfully removed.",
+    });
   };
 
   return (
