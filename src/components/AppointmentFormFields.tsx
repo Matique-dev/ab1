@@ -10,6 +10,7 @@ import {
 import { Employee } from "@/types/schedule";
 import { ServiceType } from "@/types/service";
 import { useState, useEffect } from "react";
+import { Scissors, Brush, Droplet, User } from "lucide-react";
 
 interface FormData {
   title: string;
@@ -27,13 +28,20 @@ interface AppointmentFormFieldsProps {
   services: ServiceType[];
 }
 
+// Map of icon names to components
+const iconMap = {
+  scissors: Scissors,
+  brush: Brush,
+  droplet: Droplet
+};
+
 export const AppointmentFormFields = ({
   formData,
   setFormData,
   availableEmployees = [],
   services = [],
 }: AppointmentFormFieldsProps) => {
-  const [selectedService, setSelectedService] = useState<ServiceType | undefined>();
+  const [selectedService, setSelectedService] = useState<ServiceType | undefined>(services[0]);
   const [customDuration, setCustomDuration] = useState(false);
 
   useEffect(() => {
@@ -45,6 +53,19 @@ export const AppointmentFormFields = ({
     }
   }, [selectedService, customDuration]);
 
+  useEffect(() => {
+    // Set default values when component mounts
+    if (!formData.stylist) {
+      setFormData({
+        ...formData,
+        stylist: "anyone"
+      });
+    }
+    if (services.length > 0 && !selectedService) {
+      setSelectedService(services[0]);
+    }
+  }, []);
+
   // Add "Anyone" option to employees list
   const employeeOptions = [
     {
@@ -54,6 +75,20 @@ export const AppointmentFormFields = ({
     },
     ...availableEmployees
   ];
+
+  const renderServiceIcon = (service: ServiceType) => {
+    const IconComponent = service.icon ? iconMap[service.icon as keyof typeof iconMap] : Scissors;
+    return IconComponent ? <IconComponent className="h-4 w-4 mr-2" /> : null;
+  };
+
+  const renderEmployeeIcon = (employee: { color: string }) => {
+    return (
+      <div 
+        className="h-4 w-4 rounded-full mr-2 flex-shrink-0"
+        style={{ backgroundColor: employee.color }}
+      />
+    );
+  };
 
   return (
     <>
@@ -80,12 +115,22 @@ export const AppointmentFormFields = ({
           required
         >
           <SelectTrigger>
-            <SelectValue placeholder="Select service" />
+            <SelectValue>
+              {selectedService && (
+                <div className="flex items-center">
+                  {renderServiceIcon(selectedService)}
+                  <span>{selectedService.name} - €{selectedService.priceEur}</span>
+                </div>
+              )}
+            </SelectValue>
           </SelectTrigger>
           <SelectContent>
             {services.map((service) => (
               <SelectItem key={service.id} value={service.id}>
-                {service.name} - €{service.priceEur}
+                <div className="flex items-center">
+                  {renderServiceIcon(service)}
+                  <span>{service.name} - €{service.priceEur}</span>
+                </div>
               </SelectItem>
             ))}
           </SelectContent>
@@ -103,12 +148,26 @@ export const AppointmentFormFields = ({
           required
         >
           <SelectTrigger>
-            <SelectValue placeholder="Select stylist" />
+            <SelectValue>
+              {formData.stylist && (
+                <div className="flex items-center">
+                  {renderEmployeeIcon(
+                    employeeOptions.find(e => e.id === formData.stylist) || employeeOptions[0]
+                  )}
+                  <span>
+                    {employeeOptions.find(e => e.id === formData.stylist)?.name || "Anyone"}
+                  </span>
+                </div>
+              )}
+            </SelectValue>
           </SelectTrigger>
           <SelectContent>
             {employeeOptions.map((employee) => (
               <SelectItem key={employee.id} value={employee.id}>
-                {employee.name}
+                <div className="flex items-center">
+                  {renderEmployeeIcon(employee)}
+                  <span>{employee.name}</span>
+                </div>
               </SelectItem>
             ))}
           </SelectContent>
