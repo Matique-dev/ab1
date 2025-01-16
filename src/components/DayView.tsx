@@ -3,6 +3,8 @@ import { AppointmentGrid } from "./AppointmentGrid";
 import { useRef, useState } from "react";
 import { AppointmentModal } from "./AppointmentModal";
 import { useDayViewScroll } from "@/hooks/useDayViewScroll";
+import { Employee, WeekSchedule } from "@/types/schedule";
+import { ServiceType } from "@/types/service";
 
 interface Appointment {
   id: string;
@@ -19,13 +21,26 @@ interface DayViewProps {
   appointments: Appointment[];
   onAppointmentEdit: (appointment: Appointment) => void;
   onAppointmentDelete: (appointmentId: string) => void;
+  employees?: Employee[];
+  services?: ServiceType[];
+  businessHours?: WeekSchedule;
+  exceptionDates?: Array<{
+    date: Date;
+    isAllDayOff: boolean;
+    openTime?: string;
+    closeTime?: string;
+  }>;
 }
 
 export const DayView = ({ 
   date, 
   appointments, 
   onAppointmentEdit,
-  onAppointmentDelete 
+  onAppointmentDelete,
+  employees = [],
+  services = [],
+  businessHours,
+  exceptionDates = []
 }: DayViewProps) => {
   const hours = Array.from({ length: 12 }, (_, i) => i + 9); // 9 AM to 8 PM
   const HOUR_HEIGHT = 100; // Height in pixels for one hour
@@ -95,6 +110,10 @@ export const DayView = ({
         isOpen={isModalOpen}
         onOpenChange={setIsModalOpen}
         defaultTime={selectedTime}
+        employees={employees}
+        services={services}
+        businessHours={businessHours}
+        exceptionDates={exceptionDates}
       />
     </>
   );

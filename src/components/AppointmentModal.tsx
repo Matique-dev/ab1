@@ -10,6 +10,10 @@ import { useState, useEffect } from "react";
 import { useAppointmentForm } from "@/hooks/useAppointmentForm";
 import { useAppointmentModal } from "@/hooks/useAppointmentModal";
 import { AppointmentModalContent } from "./AppointmentModalContent";
+import { Employee, WeekSchedule } from "@/types/schedule";
+import { ServiceType } from "@/types/service";
+import { format } from "date-fns";
+import { isWithinBusinessHours } from "@/utils/timeUtils";
 
 interface Appointment {
   id?: string;
@@ -31,6 +35,15 @@ interface AppointmentModalProps {
   isOpen?: boolean;
   onOpenChange?: (open: boolean) => void;
   defaultTime?: string;
+  employees?: Employee[];
+  services?: ServiceType[];
+  businessHours?: WeekSchedule;
+  exceptionDates?: Array<{
+    date: Date;
+    isAllDayOff: boolean;
+    openTime?: string;
+    closeTime?: string;
+  }>;
 }
 
 export const AppointmentModal = ({ 
@@ -42,7 +55,11 @@ export const AppointmentModal = ({
   trigger,
   isOpen: controlledIsOpen,
   onOpenChange: controlledOnOpenChange,
-  defaultTime
+  defaultTime,
+  employees = [],
+  services = [],
+  businessHours,
+  exceptionDates = []
 }: AppointmentModalProps) => {
   const [internalIsOpen, setInternalIsOpen] = useState(false);
   const isOpen = controlledIsOpen ?? internalIsOpen;
@@ -61,6 +78,40 @@ export const AppointmentModal = ({
       setFormData(prev => ({ ...prev, time: defaultTime }));
     }
   }, [isOpen, defaultTime, setFormData]);
+
+  // Get available employees for the selected time slot
+  const getAvailableEmployees = () => {
+    const dayOfWeek = format(currentDate, 'EEEE').toLowerCase();
+    const currentTime = formData.time;
+
+    // Check for exception dates
+    const exceptionDate = exceptionDates.find(ex => 
+      format(ex.date, 'yyyy-MM-dd') === format(currentDate, 'yyyy-MM-dd')
+    );
+
+    if (exceptionDate?.isAllDayOff) {
+      return [];
+    }
+
+    return employees.filter(employee => {
+      const schedule = employee.schedule[dayOfWeek];
+      if (!schedule.isAvailable) return false;
+
+      // Check if within business hours
+      if (businessHours && !isWithinBusinessHours(
+        currentTime,
+        exceptionDate?.openTime || businessHours[dayOfWeek].openTime,
+        exceptionDate?.closeTime || businessHours[dayOfWeek].closeTime
+      )) {
+        return false;
+      }
+
+      // Check employee availability
+      return isWithinBusinessHours(currentTime, schedule.workStart, schedule.workEnd);
+    });
+  };
+
+  const availableEmployees = getAvailableEmployees();
 
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -94,6 +145,8 @@ export const AppointmentModal = ({
           onSubmit={onSubmit}
           onDelete={appointment ? onDelete : undefined}
           appointment={appointment}
+          availableEmployees={availableEmployees}
+          services={services}
         />
       </DialogContent>
     </Dialog>
