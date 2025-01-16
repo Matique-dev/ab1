@@ -1,11 +1,14 @@
-import { useState } from "react";
-import { AppointmentGrid } from "./AppointmentGrid";
-import { AppointmentModal } from "./AppointmentModal";
 import { TimeGrid } from "./TimeGrid";
+import { AppointmentGrid } from "./AppointmentGrid";
+import { useRef, useState } from "react";
+import { AppointmentModal } from "./AppointmentModal";
+import { useDayViewScroll } from "@/hooks/useDayViewScroll";
+import { Employee, WeekSchedule } from "@/types/schedule";
+import { ServiceType } from "@/types/service";
 import { useBusinessStore } from "@/hooks/useBusinessStore";
 
 interface Appointment {
-  id: string;  // Making id required
+  id: string;
   title: string;
   stylist: string;
   time: string;
@@ -18,69 +21,100 @@ interface Appointment {
 interface DayViewProps {
   date: Date;
   appointments: Appointment[];
-  onAppointmentEdit: (updatedAppointment: Appointment) => void;
+  onAppointmentEdit: (appointment: Appointment) => void;
   onAppointmentDelete: (appointmentId: string) => void;
 }
 
-const DEFAULT_HOURS = Array.from({ length: 13 }, (_, i) => i + 8); // 8 AM to 8 PM
-const DEFAULT_START_HOUR = 8;
-const DEFAULT_HOUR_HEIGHT = 60;
-
-export const DayView = ({
-  date,
-  appointments,
+export const DayView = ({ 
+  date, 
+  appointments, 
   onAppointmentEdit,
   onAppointmentDelete,
 }: DayViewProps) => {
-  const [selectedTime, setSelectedTime] = useState<string | null>(null);
-  const { employees, services, businessHours, exceptionDates } = useBusinessStore();
+  const hours = Array.from({ length: 12 }, (_, i) => i + 9); // 9 AM to 8 PM
+  const HOUR_HEIGHT = 100;
+  const START_HOUR = 9;
+  const PAGE_MARGIN_PERCENT = 2.5;
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedTime, setSelectedTime] = useState<string>("");
 
-  const handleTimeClick = (time: string) => {
-    setSelectedTime(time);
-  };
+  // Get all business configuration from the store
+  const { 
+    employees, 
+    services, 
+    businessHours,
+    exceptionDates = [] 
+  } = useBusinessStore();
 
-  const handleModalClose = () => {
-    setSelectedTime(null);
+  useDayViewScroll(scrollContainerRef, HOUR_HEIGHT);
+
+  const handleDoubleClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+
+    const rect = container.getBoundingClientRect();
+    const relativeY = e.clientY - rect.top + container.scrollTop;
+    const totalMinutes = (relativeY / HOUR_HEIGHT) * 60;
+    const hour = Math.floor(totalMinutes / 60) + START_HOUR;
+    const minutes = Math.floor((totalMinutes % 60) / 30) * 30;
+    const timeString = `${hour.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+    
+    setSelectedTime(timeString);
+    setIsModalOpen(true);
   };
 
   const handleAppointmentCreate = (appointment: Omit<Appointment, "id">) => {
-    console.log("Creating appointment:", appointment);
+    const newAppointment = {
+      ...appointment,
+      id: Math.random().toString(36).substr(2, 9),
+    };
+    console.log("New appointment created:", newAppointment);
+  };
+
+  // Get service details for appointments
+  const getServiceDetails = (serviceId?: string) => {
+    if (!serviceId) return null;
+    return services.find(service => service.id === serviceId);
   };
 
   return (
-    <div className="flex flex-1">
-      <TimeGrid 
-        hours={DEFAULT_HOURS}
-        startHour={DEFAULT_START_HOUR}
-        hourHeight={DEFAULT_HOUR_HEIGHT}
-      />
-      <div className="flex-1 relative min-h-[600px]">
+    <>
+      <div 
+        ref={scrollContainerRef}
+        className="flex flex-col h-[calc(100vh-12rem)] overflow-y-auto relative scroll-smooth"
+        onDoubleClick={handleDoubleClick}
+      >
+        <TimeGrid 
+          hours={hours}
+          startHour={START_HOUR}
+          hourHeight={HOUR_HEIGHT}
+        />
         <AppointmentGrid
           date={date}
           appointments={appointments}
-          hours={DEFAULT_HOURS}
-          startHour={DEFAULT_START_HOUR}
-          hourHeight={DEFAULT_HOUR_HEIGHT}
-          pageMarginPercent={10}
+          hours={hours}
+          startHour={START_HOUR}
+          hourHeight={HOUR_HEIGHT}
+          pageMarginPercent={PAGE_MARGIN_PERCENT}
           onAppointmentEdit={onAppointmentEdit}
           onAppointmentDelete={onAppointmentDelete}
           employees={employees}
-          getServiceDetails={(serviceId) => 
-            services.find(service => service.id === serviceId) || null
-          }
-        />
-        <AppointmentModal
-          currentDate={date}
-          onAppointmentCreate={handleAppointmentCreate}
-          isOpen={!!selectedTime}
-          onOpenChange={handleModalClose}
-          defaultTime={selectedTime || undefined}
-          employees={employees}
-          services={services}
-          businessHours={businessHours}
-          exceptionDates={exceptionDates}
+          getServiceDetails={getServiceDetails}
         />
       </div>
-    </div>
+      <AppointmentModal
+        onAppointmentCreate={handleAppointmentCreate}
+        currentDate={date}
+        trigger={<></>}
+        isOpen={isModalOpen}
+        onOpenChange={setIsModalOpen}
+        defaultTime={selectedTime}
+        employees={employees}
+        services={services}
+        businessHours={businessHours}
+        exceptionDates={exceptionDates}
+      />
+    </>
   );
 };
