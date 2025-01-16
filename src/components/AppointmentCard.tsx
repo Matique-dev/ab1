@@ -46,7 +46,7 @@ export const AppointmentCard = ({
 
   return (
     <div
-      className="absolute rounded-lg p-2 cursor-pointer transition-colors hover:opacity-90"
+      className="absolute rounded-lg px-2 py-1 cursor-pointer transition-colors hover:opacity-90"
       style={{
         ...backgroundStyle,
         top: `${position.top}px`,
@@ -60,9 +60,9 @@ export const AppointmentCard = ({
         {serviceIcon && (
           <span className="text-foreground">{serviceIcon}</span>
         )}
-        <span className="font-medium text-foreground">{appointment.title}</span>
+        <span className="font-medium text-foreground text-sm">{appointment.title}</span>
       </div>
-      <div className="text-sm text-foreground/90">
+      <div className="text-xs text-foreground/90">
         {appointment.time} ({appointment.duration} min)
       </div>
     </div>
