@@ -1,6 +1,6 @@
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { EmployeeManagement } from "@/components/business/EmployeeManagement";
+import { TeamPlanning } from "@/components/business/TeamPlanning";
 import { BusinessHours } from "@/components/business/BusinessHours";
 import { ExceptionDates } from "@/components/business/ExceptionDates";
 import { ServicesManagement } from "@/components/business/ServicesManagement";
@@ -10,14 +10,7 @@ const Business = () => {
     <div className="container mx-auto p-6 space-y-6">
       <h1 className="text-3xl font-bold mb-6">Business Settings</h1>
       
-      <Card>
-        <CardHeader>
-          <CardTitle>Employee Management</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <EmployeeManagement />
-        </CardContent>
-      </Card>
+      <TeamPlanning />
 
       <Card>
         <CardHeader className="space-y-1.5">
