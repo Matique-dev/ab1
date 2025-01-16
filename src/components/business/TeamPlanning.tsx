@@ -1,10 +1,12 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, Pencil, Trash2 } from "lucide-react";
-import { useToast } from "@/components/ui/use-toast";
+import { Plus } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 import { EmployeeSchedule } from "./EmployeeSchedule";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
+import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable';
 
 interface Employee {
   id: string;
@@ -22,19 +24,33 @@ interface Employee {
 }
 
 const DEFAULT_SCHEDULE = {
-  monday: { isAvailable: true, workStart: "09:00", workEnd: "17:00", lunchStart: "12:00", lunchEnd: "13:00" },
-  tuesday: { isAvailable: true, workStart: "09:00", workEnd: "17:00", lunchStart: "12:00", lunchEnd: "13:00" },
-  wednesday: { isAvailable: true, workStart: "09:00", workEnd: "17:00", lunchStart: "12:00", lunchEnd: "13:00" },
-  thursday: { isAvailable: true, workStart: "09:00", workEnd: "17:00", lunchStart: "12:00", lunchEnd: "13:00" },
-  friday: { isAvailable: true, workStart: "09:00", workEnd: "17:00", lunchStart: "12:00", lunchEnd: "13:00" },
-  saturday: { isAvailable: false, workStart: "09:00", workEnd: "17:00", lunchStart: "12:00", lunchEnd: "13:00" },
-  sunday: { isAvailable: false, workStart: "09:00", workEnd: "17:00", lunchStart: "12:00", lunchEnd: "13:00" },
+  monday: { isAvailable: true, workStart: "09:00", workEnd: "20:00", lunchStart: "12:00", lunchEnd: "13:00" },
+  tuesday: { isAvailable: true, workStart: "09:00", workEnd: "20:00", lunchStart: "12:00", lunchEnd: "13:00" },
+  wednesday: { isAvailable: true, workStart: "09:00", workEnd: "20:00", lunchStart: "12:00", lunchEnd: "13:00" },
+  thursday: { isAvailable: true, workStart: "09:00", workEnd: "20:00", lunchStart: "12:00", lunchEnd: "13:00" },
+  friday: { isAvailable: true, workStart: "09:00", workEnd: "20:00", lunchStart: "12:00", lunchEnd: "13:00" },
+  saturday: { isAvailable: true, workStart: "09:00", workEnd: "20:00", lunchStart: "12:00", lunchEnd: "13:00" },
+  sunday: { isAvailable: true, workStart: "09:00", workEnd: "20:00", lunchStart: "12:00", lunchEnd: "13:00" },
+};
+
+const DEFAULT_MANAGER: Employee = {
+  id: "manager",
+  name: "Manager",
+  color: "#6557FF",
+  schedule: DEFAULT_SCHEDULE,
 };
 
 export const TeamPlanning = () => {
-  const [employees, setEmployees] = React.useState<Employee[]>([]);
-  const [newEmployee, setNewEmployee] = React.useState({ name: "", color: "#ee9ca7" });
+  const [employees, setEmployees] = React.useState<Employee[]>([DEFAULT_MANAGER]);
+  const [newEmployee, setNewEmployee] = React.useState({ name: "", color: "#6557FF" });
   const { toast } = useToast();
+
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
   const handleAddEmployee = () => {
     if (!newEmployee.name.trim()) {
@@ -54,7 +70,7 @@ export const TeamPlanning = () => {
     };
 
     setEmployees([...employees, employee]);
-    setNewEmployee({ name: "", color: "#ee9ca7" });
+    setNewEmployee({ name: "", color: "#6557FF" });
     
     toast({
       title: "Success",
@@ -63,6 +79,14 @@ export const TeamPlanning = () => {
   };
 
   const handleRemoveEmployee = (id: string) => {
+    if (id === "manager") {
+      toast({
+        title: "Error",
+        description: "Cannot remove the manager",
+        variant: "destructive",
+      });
+      return;
+    }
     setEmployees(employees.filter((emp) => emp.id !== id));
     toast({
       title: "Success",
@@ -78,6 +102,19 @@ export const TeamPlanning = () => {
     ));
   };
 
+  const handleDragEnd = (event: any) => {
+    const { active, over } = event;
+
+    if (active.id !== over.id) {
+      setEmployees((items) => {
+        const oldIndex = items.findIndex((item) => item.id === active.id);
+        const newIndex = items.findIndex((item) => item.id === over.id);
+        
+        return arrayMove(items, oldIndex, newIndex);
+      });
+    }
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -88,7 +125,29 @@ export const TeamPlanning = () => {
       </CardHeader>
       <CardContent>
         <div className="space-y-6">
-          <div className="flex flex-col space-y-4 sm:flex-row sm:space-x-4 sm:space-y-0">
+          <DndContext 
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleDragEnd}
+          >
+            <SortableContext 
+              items={employees.map(emp => emp.id)}
+              strategy={verticalListSortingStrategy}
+            >
+              <div className="space-y-4">
+                {employees.map((employee) => (
+                  <EmployeeSchedule
+                    key={employee.id}
+                    employee={employee}
+                    onRemove={() => handleRemoveEmployee(employee.id)}
+                    onUpdateSchedule={(schedule) => handleUpdateSchedule(employee.id, schedule)}
+                  />
+                ))}
+              </div>
+            </SortableContext>
+          </DndContext>
+
+          <div className="flex flex-col space-y-4 sm:flex-row sm:space-x-4 sm:space-y-0 pt-6 border-t">
             <Input
               placeholder="Team member name"
               value={newEmployee.name}
@@ -105,17 +164,6 @@ export const TeamPlanning = () => {
               <Plus className="w-4 h-4 mr-2" />
               Add Member
             </Button>
-          </div>
-
-          <div className="space-y-4">
-            {employees.map((employee) => (
-              <EmployeeSchedule
-                key={employee.id}
-                employee={employee}
-                onRemove={() => handleRemoveEmployee(employee.id)}
-                onUpdateSchedule={(schedule) => handleUpdateSchedule(employee.id, schedule)}
-              />
-            ))}
           </div>
         </div>
       </CardContent>

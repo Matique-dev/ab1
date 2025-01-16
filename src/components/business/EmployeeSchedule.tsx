@@ -1,9 +1,11 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { Pencil, Trash2 } from "lucide-react";
+import { Pencil, Trash2, GripVertical } from "lucide-react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
 interface ScheduleDay {
   isAvailable: boolean;
@@ -48,6 +50,19 @@ const HOURS = Array.from({ length: 24 }, (_, i) => {
 }).flat();
 
 export const EmployeeSchedule: React.FC<Props> = ({ employee, onRemove, onUpdateSchedule }) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+  } = useSortable({ id: employee.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+
   const handleToggleDay = (day: string) => {
     onUpdateSchedule({
       ...employee.schedule,
@@ -73,12 +88,21 @@ export const EmployeeSchedule: React.FC<Props> = ({ employee, onRemove, onUpdate
   };
 
   return (
-    <div className="border rounded-lg overflow-hidden">
+    <div ref={setNodeRef} style={style} className="border rounded-lg overflow-hidden">
       <div
         className="flex items-center justify-between p-4"
         style={{ borderLeft: `4px solid ${employee.color}` }}
       >
         <div className="flex items-center space-x-3">
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="cursor-grab" 
+            {...attributes} 
+            {...listeners}
+          >
+            <GripVertical className="w-4 h-4 text-muted-foreground" />
+          </Button>
           <div
             className="w-4 h-4 rounded-full"
             style={{ backgroundColor: employee.color }}
@@ -94,6 +118,7 @@ export const EmployeeSchedule: React.FC<Props> = ({ employee, onRemove, onUpdate
             size="icon"
             onClick={onRemove}
             className="text-destructive hover:text-destructive"
+            disabled={employee.id === "manager"}
           >
             <Trash2 className="w-4 h-4" />
           </Button>
