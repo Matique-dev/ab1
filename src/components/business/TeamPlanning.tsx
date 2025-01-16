@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { EmployeeSchedule } from "./EmployeeSchedule";
 import { Employee, WeekSchedule } from "@/types/schedule";
 import { useToast } from "@/hooks/use-toast";
-import { BusinessHours } from "./BusinessHours";
+import { Users } from "lucide-react";
 
 export const DEFAULT_BUSINESS_HOURS: WeekSchedule = {
   monday: { isOpen: true, openTime: "09:00", closeTime: "17:00" },
@@ -80,24 +80,15 @@ export const TeamPlanning: React.FC<TeamPlanningProps> = ({
   return (
     <Card>
       <CardHeader className="space-y-1.5">
-        <CardTitle>Team Planning</CardTitle>
+        <div className="flex items-center gap-2">
+          <Users className="h-6 w-6 text-muted-foreground" />
+          <CardTitle>Team Planning</CardTitle>
+        </div>
         <p className="text-sm text-muted-foreground">
-          Manage your team's schedule and availability.
+          Manage your team's schedule and availability
         </p>
       </CardHeader>
       <CardContent className="space-y-4">
-        <Card>
-          <CardHeader>
-            <CardTitle>Business Hours</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <BusinessHours 
-              initialSchedule={initialBusinessHours}
-              onScheduleChange={onBusinessHoursChange}
-            />
-          </CardContent>
-        </Card>
-
         <DndContext>
           <SortableContext items={employees.map(emp => emp.id)}>
             <div className="space-y-4">
