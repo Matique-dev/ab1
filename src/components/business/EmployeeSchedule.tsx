@@ -54,11 +54,13 @@ export const EmployeeSchedule: React.FC<Props> = ({
     setNodeRef,
     transform,
     transition,
+    isDragging
   } = useSortable({ id: employee.id });
 
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
+    opacity: isDragging ? 0.5 : 1,
   };
 
   const handleToggleDay = (day: string) => {
@@ -117,7 +119,7 @@ export const EmployeeSchedule: React.FC<Props> = ({
           <Button 
             variant="ghost" 
             size="icon" 
-            className="cursor-grab" 
+            className="cursor-grab active:cursor-grabbing" 
             {...attributes} 
             {...listeners}
           >

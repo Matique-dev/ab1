@@ -1,6 +1,6 @@
 import React from "react";
-import { DndContext } from "@dnd-kit/core";
-import { SortableContext } from "@dnd-kit/sortable";
+import { DndContext, DragEndEvent, closestCenter } from "@dnd-kit/core";
+import { SortableContext, verticalListSortingStrategy, arrayMove } from "@dnd-kit/sortable";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -32,11 +32,6 @@ const defaultEmployee: Employee = {
   schedule: {},
 };
 
-interface TeamPlanningProps {
-  initialBusinessHours: WeekSchedule;
-  onBusinessHoursChange: (schedule: WeekSchedule) => void;
-}
-
 export const TeamPlanning: React.FC<TeamPlanningProps> = ({
   initialBusinessHours,
   onBusinessHoursChange
@@ -46,7 +41,6 @@ export const TeamPlanning: React.FC<TeamPlanningProps> = ({
   const [colorIndex, setColorIndex] = React.useState(1);
   const [defaultEmployeeId, setDefaultEmployeeId] = React.useState<string>("employee-1");
 
-  // Initialize with default employee if no employees exist
   React.useEffect(() => {
     if (employees.length === 0) {
       const initialEmployee = {
@@ -79,6 +73,23 @@ export const TeamPlanning: React.FC<TeamPlanningProps> = ({
       title: "Employee added",
       description: `${newEmployee.name} has been added to the team.`,
     });
+  };
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    
+    if (over && active.id !== over.id) {
+      const oldIndex = employees.findIndex((emp) => emp.id === active.id);
+      const newIndex = employees.findIndex((emp) => emp.id === over.id);
+      
+      const reorderedEmployees = arrayMove(employees, oldIndex, newIndex);
+      updateEmployees(reorderedEmployees);
+      
+      toast({
+        title: "Team order updated",
+        description: "The team order has been updated successfully.",
+      });
+    }
   };
 
   const handleRemoveEmployee = (employeeId: string) => {
@@ -133,8 +144,8 @@ export const TeamPlanning: React.FC<TeamPlanningProps> = ({
         </p>
       </CardHeader>
       <CardContent className="space-y-4">
-        <DndContext>
-          <SortableContext items={employees.map(emp => emp.id)}>
+        <DndContext collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+          <SortableContext items={employees.map(emp => emp.id)} strategy={verticalListSortingStrategy}>
             <div className="space-y-4">
               {employees.map((employee) => (
                 <EmployeeSchedule
