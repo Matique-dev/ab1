@@ -1,43 +1,21 @@
-import React from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Pencil, Trash2, GripVertical } from "lucide-react";
+import { Pencil, Trash2, GripVertical, ChevronDown, ChevronUp } from "lucide-react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-
-interface ScheduleDay {
-  isAvailable: boolean;
-  workStart: string;
-  workEnd: string;
-  lunchStart: string;
-  lunchEnd: string;
-}
-
-interface Employee {
-  id: string;
-  name: string;
-  color: string;
-  schedule: {
-    [key: string]: ScheduleDay;
-  };
-}
-
-interface Props {
-  employee: Employee;
-  onRemove: () => void;
-  onUpdateSchedule: (schedule: Employee['schedule']) => void;
-}
+import { Input } from "@/components/ui/input";
 
 const DAYS = [
-  { value: "monday", label: "Monday" },
-  { value: "tuesday", label: "Tuesday" },
-  { value: "wednesday", label: "Wednesday" },
-  { value: "thursday", label: "Thursday" },
-  { value: "friday", label: "Friday" },
-  { value: "saturday", label: "Saturday" },
-  { value: "sunday", label: "Sunday" },
+  { value: "monday", label: "Mon" },
+  { value: "tuesday", label: "Tue" },
+  { value: "wednesday", label: "Wed" },
+  { value: "thursday", label: "Thu" },
+  { value: "friday", label: "Fri" },
+  { value: "saturday", label: "Sat" },
+  { value: "sunday", label: "Sun" },
 ];
 
 const HOURS = Array.from({ length: 24 }, (_, i) => {
@@ -49,7 +27,26 @@ const HOURS = Array.from({ length: 24 }, (_, i) => {
   }));
 }).flat();
 
-export const EmployeeSchedule: React.FC<Props> = ({ employee, onRemove, onUpdateSchedule }) => {
+interface Props {
+  employee: Employee;
+  onRemove: () => void;
+  onUpdateSchedule: (schedule: Employee['schedule']) => void;
+  onUpdateEmployee: (updates: Partial<Employee>) => void;
+  businessHours: WeekSchedule;
+}
+
+export const EmployeeSchedule: React.FC<Props> = ({ 
+  employee, 
+  onRemove, 
+  onUpdateSchedule, 
+  onUpdateEmployee,
+  businessHours 
+}) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [tempName, setTempName] = useState(employee.name);
+  const [tempColor, setTempColor] = useState(employee.color);
+
   const {
     attributes,
     listeners,
@@ -78,13 +75,35 @@ export const EmployeeSchedule: React.FC<Props> = ({ employee, onRemove, onUpdate
     type: 'workStart' | 'workEnd' | 'lunchStart' | 'lunchEnd',
     value: string
   ) => {
+    // Validate against business hours
+    const dayBusinessHours = businessHours[day];
+    if (!dayBusinessHours.isOpen) {
+      return; // Don't allow changes if business is closed
+    }
+
+    let newValue = value;
+    if (type === 'workStart' && value < dayBusinessHours.openTime) {
+      newValue = dayBusinessHours.openTime;
+    }
+    if (type === 'workEnd' && value > dayBusinessHours.closeTime) {
+      newValue = dayBusinessHours.closeTime;
+    }
+
     onUpdateSchedule({
       ...employee.schedule,
       [day]: {
         ...employee.schedule[day],
-        [type]: value,
+        [type]: newValue,
       },
     });
+  };
+
+  const handleSaveEdit = () => {
+    onUpdateEmployee({ 
+      name: tempName,
+      color: tempColor 
+    });
+    setIsEditing(false);
   };
 
   return (
@@ -103,15 +122,47 @@ export const EmployeeSchedule: React.FC<Props> = ({ employee, onRemove, onUpdate
           >
             <GripVertical className="w-4 h-4 text-muted-foreground" />
           </Button>
-          <div
-            className="w-4 h-4 rounded-full"
-            style={{ backgroundColor: employee.color }}
-          />
-          <span className="font-medium">{employee.name}</span>
+          {isEditing ? (
+            <div className="flex items-center space-x-2">
+              <Input
+                value={tempName}
+                onChange={(e) => setTempName(e.target.value)}
+                className="w-32"
+              />
+              <Input
+                type="color"
+                value={tempColor}
+                onChange={(e) => setTempColor(e.target.value)}
+                className="w-12"
+              />
+              <Button onClick={handleSaveEdit} size="sm">Save</Button>
+            </div>
+          ) : (
+            <>
+              <div
+                className="w-4 h-4 rounded-full"
+                style={{ backgroundColor: employee.color }}
+              />
+              <span 
+                className="font-medium cursor-pointer hover:underline"
+                onClick={() => setIsEditing(true)}
+              >
+                {employee.name}
+              </span>
+            </>
+          )}
         </div>
         <div className="flex items-center space-x-2">
-          <Button variant="ghost" size="icon">
-            <Pencil className="w-4 h-4" />
+          <Button 
+            variant="ghost" 
+            size="icon"
+            onClick={() => setIsExpanded(!isExpanded)}
+          >
+            {isExpanded ? (
+              <ChevronUp className="w-4 h-4" />
+            ) : (
+              <ChevronDown className="w-4 h-4" />
+            )}
           </Button>
           <Button
             variant="ghost"
@@ -125,27 +176,29 @@ export const EmployeeSchedule: React.FC<Props> = ({ employee, onRemove, onUpdate
         </div>
       </div>
 
-      <Accordion type="single" collapsible className="w-full">
-        {DAYS.map((day) => (
-          <AccordionItem value={day.value} key={day.value}>
-            <AccordionTrigger className="flex justify-between py-2 px-4 hover:bg-accent/50">
-              <div className="flex items-center gap-4">
-                <Switch
-                  checked={employee.schedule[day.value].isAvailable}
-                  onCheckedChange={() => handleToggleDay(day.value)}
-                  onClick={(e) => e.stopPropagation()}
-                />
-                <span className={employee.schedule[day.value].isAvailable ? "font-medium" : "text-muted-foreground"}>
-                  {day.label}
-                </span>
-              </div>
-              {employee.schedule[day.value].isAvailable && (
-                <span className="text-sm text-muted-foreground">
-                  {employee.schedule[day.value].workStart} - {employee.schedule[day.value].workEnd}
-                </span>
-              )}
-            </AccordionTrigger>
-            <AccordionContent className="px-4">
+      {isExpanded && (
+        <Accordion type="single" collapsible className="w-full">
+          {DAYS.map((day) => (
+            <AccordionItem value={day.value} key={day.value}>
+              <AccordionTrigger className="flex justify-between py-2 px-4 hover:bg-accent/50">
+                <div className="flex items-center gap-4">
+                  <Switch
+                    checked={employee.schedule[day.value].isAvailable}
+                    onCheckedChange={() => handleToggleDay(day.value)}
+                    onClick={(e) => e.stopPropagation()}
+                    disabled={!businessHours[day.value].isOpen}
+                  />
+                  <span className={employee.schedule[day.value].isAvailable ? "font-medium" : "text-muted-foreground"}>
+                    {day.label}
+                  </span>
+                </div>
+                {employee.schedule[day.value].isAvailable && (
+                  <span className="text-sm text-muted-foreground w-32 text-right">
+                    {employee.schedule[day.value].workStart} - {employee.schedule[day.value].workEnd}
+                  </span>
+                )}
+              </AccordionTrigger>
+              <AccordionContent className="px-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-4">
                 <div className="space-y-4">
                   <div>
@@ -228,10 +281,11 @@ export const EmployeeSchedule: React.FC<Props> = ({ employee, onRemove, onUpdate
                   </div>
                 </div>
               </div>
-            </AccordionContent>
-          </AccordionItem>
-        ))}
-      </Accordion>
+              </AccordionContent>
+            </AccordionItem>
+          ))}
+        </Accordion>
+      )}
     </div>
   );
 };

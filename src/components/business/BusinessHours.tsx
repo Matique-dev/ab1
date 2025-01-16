@@ -16,13 +16,13 @@ type WeekSchedule = {
 };
 
 const DAYS = [
-  { value: "monday", label: "Monday" },
-  { value: "tuesday", label: "Tuesday" },
-  { value: "wednesday", label: "Wednesday" },
-  { value: "thursday", label: "Thursday" },
-  { value: "friday", label: "Friday" },
-  { value: "saturday", label: "Saturday" },
-  { value: "sunday", label: "Sunday" },
+  { value: "monday", label: "Mon" },
+  { value: "tuesday", label: "Tue" },
+  { value: "wednesday", label: "Wed" },
+  { value: "thursday", label: "Thu" },
+  { value: "friday", label: "Fri" },
+  { value: "saturday", label: "Sat" },
+  { value: "sunday", label: "Sun" },
 ];
 
 const HOURS = Array.from({ length: 24 }, (_, i) => {
@@ -77,6 +77,7 @@ export const BusinessHours = () => {
       <Accordion type="single" collapsible className="w-full">
         {DAYS.map((day) => (
           <AccordionItem value={day.value} key={day.value}>
+
             <AccordionTrigger className="flex justify-between py-4 px-4 hover:bg-accent/50 rounded-lg">
               <div className="flex items-center gap-4">
                 <Switch
@@ -89,11 +90,12 @@ export const BusinessHours = () => {
                 </span>
               </div>
               {schedule[day.value].isOpen && (
-                <span className="text-sm text-muted-foreground">
+                <span className="text-sm text-muted-foreground w-32 text-right">
                   {schedule[day.value].openTime} - {schedule[day.value].closeTime}
                 </span>
               )}
             </AccordionTrigger>
+
             <AccordionContent className="px-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4">
                 <div>

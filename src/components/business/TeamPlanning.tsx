@@ -43,6 +43,7 @@ const DEFAULT_MANAGER: Employee = {
 export const TeamPlanning = () => {
   const [employees, setEmployees] = React.useState<Employee[]>([DEFAULT_MANAGER]);
   const [newEmployee, setNewEmployee] = React.useState({ name: "", color: "#6557FF" });
+  const [businessHours, setBusinessHours] = React.useState<typeof DEFAULT_SCHEDULE>(DEFAULT_SCHEDULE);
   const { toast } = useToast();
 
   const sensors = useSensors(
@@ -102,6 +103,40 @@ export const TeamPlanning = () => {
     ));
   };
 
+  const handleUpdateEmployee = (employeeId: string, updates: Partial<Employee>) => {
+    setEmployees(employees.map(emp => 
+      emp.id === employeeId 
+        ? { ...emp, ...updates }
+        : emp
+    ));
+  };
+
+  React.useEffect(() => {
+    setEmployees(prevEmployees => 
+      prevEmployees.map(employee => ({
+        ...employee,
+        schedule: Object.entries(employee.schedule).reduce((acc, [day, schedule]) => {
+          const businessDay = businessHours[day];
+          if (!businessDay.isAvailable) {
+            return {
+              ...acc,
+              [day]: { ...schedule, isAvailable: false }
+            };
+          }
+          
+          return {
+            ...acc,
+            [day]: {
+              ...schedule,
+              workStart: schedule.workStart < businessDay.workStart ? businessDay.workStart : schedule.workStart,
+              workEnd: schedule.workEnd > businessDay.workEnd ? businessDay.workEnd : schedule.workEnd,
+            }
+          };
+        }, {} as typeof employee.schedule)
+      }))
+    );
+  }, [businessHours]);
+
   const handleDragEnd = (event: any) => {
     const { active, over } = event;
 
@@ -141,6 +176,8 @@ export const TeamPlanning = () => {
                     employee={employee}
                     onRemove={() => handleRemoveEmployee(employee.id)}
                     onUpdateSchedule={(schedule) => handleUpdateSchedule(employee.id, schedule)}
+                    onUpdateEmployee={(updates) => handleUpdateEmployee(employee.id, updates)}
+                    businessHours={businessHours}
                   />
                 ))}
               </div>
