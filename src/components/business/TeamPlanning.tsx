@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { EmployeeSchedule } from "./EmployeeSchedule";
 import { Employee, WeekSchedule } from "@/types/schedule";
 import { useToast } from "@/hooks/use-toast";
-import { Users } from "lucide-react";
+import { Users, Plus } from "lucide-react";
 
 export const DEFAULT_BUSINESS_HOURS: WeekSchedule = {
   monday: { isOpen: true, openTime: "09:00", closeTime: "17:00" },
