@@ -7,6 +7,7 @@ import { EmployeeSchedule } from "./EmployeeSchedule";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable';
+import { Employee, WeekSchedule } from "@/types/schedule";
 
 interface Employee {
   id: string;
