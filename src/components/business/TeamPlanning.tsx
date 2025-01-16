@@ -4,21 +4,16 @@ import { SortableContext } from "@dnd-kit/sortable";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { EmployeeSchedule } from "./EmployeeSchedule";
-import { Employee, WeekSchedule } from "@/types/schedule";
+import { Employee, EMPLOYEE_COLORS } from "@/types/schedule";
 import { useToast } from "@/hooks/use-toast";
 import { Users, Plus } from "lucide-react";
+import { DEFAULT_BUSINESS_HOURS } from "@/constants/business";
 
-export const DEFAULT_BUSINESS_HOURS: WeekSchedule = {
-  monday: { isOpen: true, openTime: "09:00", closeTime: "17:00" },
-  tuesday: { isOpen: true, openTime: "09:00", closeTime: "17:00" },
-  wednesday: { isOpen: true, openTime: "09:00", closeTime: "17:00" },
-  thursday: { isOpen: true, openTime: "09:00", closeTime: "17:00" },
-  friday: { isOpen: true, openTime: "09:00", closeTime: "17:00" },
-  saturday: { isOpen: false, openTime: "09:00", closeTime: "17:00" },
-  sunday: { isOpen: false, openTime: "09:00", closeTime: "17:00" },
-};
-
-const createDefaultEmployeeSchedule = (businessHours: WeekSchedule) => {
+/**
+ * Creates a default schedule for a new employee based on business hours
+ * @param businessHours - The business operating hours
+ */
+const createDefaultEmployeeSchedule = (businessHours: typeof DEFAULT_BUSINESS_HOURS) => {
   const schedule: { [key: string]: any } = {};
   Object.entries(businessHours).forEach(([day, hours]) => {
     schedule[day] = {
@@ -33,11 +28,9 @@ const createDefaultEmployeeSchedule = (businessHours: WeekSchedule) => {
 };
 
 interface TeamPlanningProps {
-  initialBusinessHours: WeekSchedule;
-  onBusinessHoursChange: (schedule: WeekSchedule) => void;
+  initialBusinessHours: typeof DEFAULT_BUSINESS_HOURS;
+  onBusinessHoursChange: (schedule: typeof DEFAULT_BUSINESS_HOURS) => void;
 }
-
-const DEFAULT_EMPLOYEE_COLORS = ['#6557FF', '#AA3FFF', '#F8522E', '#2ECC71'];
 
 export const TeamPlanning: React.FC<TeamPlanningProps> = ({
   initialBusinessHours,
@@ -48,25 +41,41 @@ export const TeamPlanning: React.FC<TeamPlanningProps> = ({
     {
       id: "manager",
       name: "Manager",
-      color: DEFAULT_EMPLOYEE_COLORS[0],
+      color: EMPLOYEE_COLORS.DEFAULT,
       schedule: createDefaultEmployeeSchedule(initialBusinessHours),
     },
   ]);
   const [colorIndex, setColorIndex] = useState(1);
 
   const handleAddEmployee = () => {
+    const colors = [
+      EMPLOYEE_COLORS.SECONDARY,
+      EMPLOYEE_COLORS.TERTIARY,
+      EMPLOYEE_COLORS.QUATERNARY
+    ];
+    
     const newEmployee: Employee = {
       id: `employee-${Date.now()}`,
       name: `Employee ${employees.length + 1}`,
-      color: DEFAULT_EMPLOYEE_COLORS[colorIndex % DEFAULT_EMPLOYEE_COLORS.length],
+      color: colors[colorIndex % colors.length],
       schedule: createDefaultEmployeeSchedule(initialBusinessHours),
     };
+    
     setEmployees([...employees, newEmployee]);
     setColorIndex(prev => prev + 1);
+    
+    toast({
+      title: "Employee added",
+      description: `${newEmployee.name} has been added to the team.`,
+    });
   };
 
   const handleRemoveEmployee = (employeeId: string) => {
     setEmployees(employees.filter((emp) => emp.id !== employeeId));
+    toast({
+      title: "Employee removed",
+      description: "The employee has been removed from the team.",
+    });
   };
 
   const handleUpdateEmployeeSchedule = (employeeId: string, newSchedule: Employee['schedule']) => {
@@ -109,9 +118,11 @@ export const TeamPlanning: React.FC<TeamPlanningProps> = ({
             </div>
           </SortableContext>
         </DndContext>
-        <Button onClick={handleAddEmployee}>
-          <Plus className="mr-2 h-4 w-4" /> Add Employee
-        </Button>
+        <div className="flex justify-start">
+          <Button onClick={handleAddEmployee} className="w-auto">
+            <Plus className="mr-2 h-4 w-4" /> Add Employee
+          </Button>
+        </div>
       </CardContent>
     </Card>
   );
