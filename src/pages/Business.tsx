@@ -7,6 +7,7 @@ import { WeekSchedule } from "@/types/schedule";
 import { useToast } from "@/hooks/use-toast";
 import { Clock, Users, Calendar, Scissors } from "lucide-react";
 import { DEFAULT_BUSINESS_HOURS } from "@/constants/business";
+import { BusinessHours } from "@/components/business/BusinessHours";
 
 const Business = () => {
   const [businessHours, setBusinessHours] = useState<WeekSchedule>(DEFAULT_BUSINESS_HOURS);
