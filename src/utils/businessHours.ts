@@ -1,4 +1,4 @@
-import { isSameDay, parse } from "date-fns";
+import { isSameDay } from "date-fns";
 
 export type DaySchedule = {
   isOpen: boolean;
@@ -24,7 +24,7 @@ export const isWithinBusinessHours = (
   exceptionDates: ExceptionDate[]
 ): boolean => {
   // Check if it's an exception date
-  const exceptionDate = exceptionDates.find((ex) => isSameDay(ex.date, date));
+  const exceptionDate = exceptionDates?.find((ex) => isSameDay(ex.date, date));
   
   if (exceptionDate) {
     if (exceptionDate.isAllDayOff) return false;
@@ -34,7 +34,7 @@ export const isWithinBusinessHours = (
   }
 
   // Get day of week in lowercase
-  const dayOfWeek = date.toLocaleDateString('en-US', { weekday: 'lowercase' });
+  const dayOfWeek = date.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
   const schedule = weekSchedule[dayOfWeek];
 
   if (!schedule || !schedule.isOpen) return false;
