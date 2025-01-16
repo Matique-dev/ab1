@@ -41,12 +41,29 @@ export const AppointmentCard = ({
   // Convert to RGB and add opacity
   const rgbColor = hexToRgb(baseColor);
   const backgroundStyle = rgbColor 
-    ? { backgroundColor: `rgba(${rgbColor.r}, ${rgbColor.g}, ${rgbColor.b}, 0.4)` }
+    ? { 
+        backgroundColor: `rgba(${rgbColor.r}, ${rgbColor.g}, ${rgbColor.b}, 0.4)`,
+        borderColor: baseColor, // Solid border color
+      }
     : {};
+
+  // Import icons dynamically based on the serviceIcon prop
+  const getServiceIcon = () => {
+    switch (serviceIcon) {
+      case 'scissors':
+        return <Scissors className="h-4 w-4" />;
+      case 'brush':
+        return <Brush className="h-4 w-4" />;
+      case 'droplet':
+        return <Droplet className="h-4 w-4" />;
+      default:
+        return null;
+    }
+  };
 
   return (
     <div
-      className="absolute rounded-lg px-2 py-1 cursor-pointer transition-colors hover:opacity-90"
+      className="absolute rounded-lg px-2 py-1 cursor-pointer transition-colors hover:opacity-90 border-2"
       style={{
         ...backgroundStyle,
         top: `${position.top}px`,
@@ -58,7 +75,9 @@ export const AppointmentCard = ({
     >
       <div className="flex items-center gap-1">
         {serviceIcon && (
-          <span className="text-foreground">{serviceIcon}</span>
+          <span className="text-foreground">
+            {getServiceIcon()}
+          </span>
         )}
         <span className="font-medium text-foreground text-sm">{appointment.title}</span>
       </div>
