@@ -1,12 +1,12 @@
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { TeamPlanning, DEFAULT_BUSINESS_HOURS } from "@/components/business/TeamPlanning";
+import { TeamPlanning } from "@/components/business/TeamPlanning";
 import { ExceptionDates } from "@/components/business/ExceptionDates";
 import { ServicesManagement } from "@/components/business/ServicesManagement";
 import { WeekSchedule } from "@/types/schedule";
 import { useToast } from "@/hooks/use-toast";
-import { BusinessHours } from "@/components/business/BusinessHours";
 import { Clock, Users, Calendar, Scissors } from "lucide-react";
+import { DEFAULT_BUSINESS_HOURS } from "@/constants/business";
 
 const Business = () => {
   const [businessHours, setBusinessHours] = useState<WeekSchedule>(DEFAULT_BUSINESS_HOURS);
