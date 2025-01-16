@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, Scissors } from "lucide-react";
+import { Plus } from "lucide-react";
 import { ServiceCard } from "./ServiceCard";
 import { ServiceType, defaultServices } from '@/types/service';
 import { useToast } from "@/components/ui/use-toast";
@@ -42,9 +41,6 @@ export const ServicesManagement = () => {
 
   return (
     <div className="space-y-4">
-      <Button onClick={handleAddService} className="ml-auto">
-        <Plus className="mr-2 h-4 w-4" /> Add Service
-      </Button>
       {services.map((service) => (
         <ServiceCard
           key={service.id}
@@ -53,6 +49,9 @@ export const ServicesManagement = () => {
           onDelete={handleDeleteService}
         />
       ))}
+      <Button onClick={handleAddService}>
+        <Plus className="mr-2 h-4 w-4" /> Add Service
+      </Button>
     </div>
   );
 };

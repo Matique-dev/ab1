@@ -37,6 +37,8 @@ interface TeamPlanningProps {
   onBusinessHoursChange: (schedule: WeekSchedule) => void;
 }
 
+const DEFAULT_EMPLOYEE_COLORS = ['#6557FF', '#AA3FFF', '#F8522E', '#2ECC71'];
+
 export const TeamPlanning: React.FC<TeamPlanningProps> = ({
   initialBusinessHours,
   onBusinessHoursChange
@@ -46,19 +48,21 @@ export const TeamPlanning: React.FC<TeamPlanningProps> = ({
     {
       id: "manager",
       name: "Manager",
-      color: "#FF0000",
+      color: DEFAULT_EMPLOYEE_COLORS[0],
       schedule: createDefaultEmployeeSchedule(initialBusinessHours),
     },
   ]);
+  const [colorIndex, setColorIndex] = useState(1);
 
   const handleAddEmployee = () => {
     const newEmployee: Employee = {
-      id: `employee-${employees.length + 1}`,
+      id: `employee-${Date.now()}`,
       name: `Employee ${employees.length + 1}`,
-      color: `#${Math.floor(Math.random()*16777215).toString(16)}`,
+      color: DEFAULT_EMPLOYEE_COLORS[colorIndex % DEFAULT_EMPLOYEE_COLORS.length],
       schedule: createDefaultEmployeeSchedule(initialBusinessHours),
     };
     setEmployees([...employees, newEmployee]);
+    setColorIndex(prev => prev + 1);
   };
 
   const handleRemoveEmployee = (employeeId: string) => {
@@ -105,8 +109,8 @@ export const TeamPlanning: React.FC<TeamPlanningProps> = ({
             </div>
           </SortableContext>
         </DndContext>
-        <Button onClick={handleAddEmployee} className="w-full">
-          Add Employee
+        <Button onClick={handleAddEmployee}>
+          <Plus className="mr-2 h-4 w-4" /> Add Employee
         </Button>
       </CardContent>
     </Card>

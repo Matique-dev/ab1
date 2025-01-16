@@ -66,7 +66,7 @@ const Business = () => {
         <CardHeader className="space-y-1.5">
           <div className="flex items-center gap-2">
             <Scissors className="h-6 w-6 text-muted-foreground" />
-            <CardTitle>Services Management</CardTitle>
+            <CardTitle>Services</CardTitle>
           </div>
           <p className="text-sm text-muted-foreground">
             List your services, standard duration and price

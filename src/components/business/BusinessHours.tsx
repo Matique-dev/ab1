@@ -57,13 +57,6 @@ export const BusinessHours: React.FC<BusinessHoursProps> = ({
     onScheduleChange(newSchedule);
   };
 
-  const handleSave = () => {
-    toast({
-      title: "Business hours updated",
-      description: "Your business hours have been saved successfully.",
-    });
-  };
-
   return (
     <div className="space-y-4 animate-fade-in">
       <Accordion type="single" collapsible className="w-full">
@@ -132,13 +125,6 @@ export const BusinessHours: React.FC<BusinessHoursProps> = ({
           </AccordionItem>
         ))}
       </Accordion>
-
-      <button
-        onClick={handleSave}
-        className="w-full mt-4 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
-      >
-        Save Changes
-      </button>
     </div>
   );
 };
