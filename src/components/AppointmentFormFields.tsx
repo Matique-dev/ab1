@@ -30,8 +30,8 @@ interface AppointmentFormFieldsProps {
 export const AppointmentFormFields = ({
   formData,
   setFormData,
-  availableEmployees,
-  services,
+  availableEmployees = [],
+  services = [],
 }: AppointmentFormFieldsProps) => {
   const [selectedService, setSelectedService] = useState<ServiceType | undefined>();
   const [customDuration, setCustomDuration] = useState(false);

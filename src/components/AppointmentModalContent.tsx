@@ -1,5 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { AppointmentFormFields } from "./AppointmentFormFields";
+import { Employee } from "@/types/schedule";
+import { ServiceType } from "@/types/service";
 
 interface FormData {
   title: string;
@@ -26,6 +28,8 @@ interface AppointmentModalContentProps {
   onSubmit: (e: React.FormEvent) => void;
   onDelete?: () => void;
   appointment?: Appointment;
+  availableEmployees: Employee[];
+  services: ServiceType[];
 }
 
 export const AppointmentModalContent = ({
@@ -34,12 +38,16 @@ export const AppointmentModalContent = ({
   onSubmit,
   onDelete,
   appointment,
+  availableEmployees,
+  services,
 }: AppointmentModalContentProps) => {
   return (
     <form onSubmit={onSubmit} className="space-y-4 mt-4">
       <AppointmentFormFields
         formData={formData}
         setFormData={setFormData}
+        availableEmployees={availableEmployees}
+        services={services}
       />
       <div className="flex gap-2">
         <Button type="submit" className="flex-1">
