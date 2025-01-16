@@ -1,16 +1,11 @@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Employee } from "@/types/schedule";
 import { ServiceType } from "@/types/service";
 import { useState, useEffect } from "react";
-import { Scissors, Brush, Droplet } from "lucide-react";
+import { ServiceSelect } from "./appointment/ServiceSelect";
+import { StylistSelect } from "./appointment/StylistSelect";
+import { DurationSelect } from "./appointment/DurationSelect";
 
 interface FormData {
   title: string;
@@ -29,15 +24,6 @@ interface AppointmentFormFieldsProps {
   services: ServiceType[];
 }
 
-// Map of icon names to components
-const iconMap = {
-  scissors: Scissors,
-  brush: Brush,
-  droplet: Droplet
-};
-
-const UNASSIGNED_COLOR = "#6557FF";
-
 export const AppointmentFormFields = ({
   formData,
   setFormData,
@@ -48,7 +34,6 @@ export const AppointmentFormFields = ({
   const [customDuration, setCustomDuration] = useState(false);
 
   useEffect(() => {
-    // Initialize selectedService based on the appointment's serviceId
     if (services.length > 0) {
       const service = formData.serviceId 
         ? services.find(s => s.id === formData.serviceId) 
@@ -57,7 +42,6 @@ export const AppointmentFormFields = ({
       if (service) {
         setSelectedService(service);
         
-        // Only set duration if it's not already set in formData
         if (!formData.duration) {
           setFormData({
             ...formData,
@@ -69,7 +53,6 @@ export const AppointmentFormFields = ({
   }, [services, formData.serviceId]);
 
   useEffect(() => {
-    // Set custom duration flag if the duration doesn't match any service duration
     if (formData.duration) {
       const matchingService = services.find(
         service => service.durationMinutes.toString() === formData.duration
@@ -88,28 +71,9 @@ export const AppointmentFormFields = ({
     }
   }, [selectedService, customDuration]);
 
-  // Add "Anyone" option to employees list
-  const employeeOptions = [
-    {
-      id: "anyone",
-      name: "Anyone",
-      color: UNASSIGNED_COLOR,
-    },
-    ...availableEmployees
-  ];
-
-  const renderServiceIcon = (service: ServiceType) => {
-    const IconComponent = service.icon ? iconMap[service.icon as keyof typeof iconMap] : Scissors;
-    return IconComponent ? <IconComponent className="h-4 w-4 mr-2" /> : null;
-  };
-
-  const renderEmployeeIcon = (employee: { color: string }) => {
-    return (
-      <div 
-        className="h-4 w-4 rounded-full mr-2 flex-shrink-0"
-        style={{ backgroundColor: employee.color }}
-      />
-    );
+  const handleServiceChange = (serviceId: string) => {
+    const service = services.find(s => s.id === serviceId);
+    setSelectedService(service);
   };
 
   return (
@@ -128,72 +92,20 @@ export const AppointmentFormFields = ({
 
       <div className="space-y-2">
         <Label htmlFor="service">Service</Label>
-        <Select
-          value={selectedService?.id}
-          onValueChange={(value) => {
-            const service = services.find(s => s.id === value);
-            setSelectedService(service);
-          }}
-          required
-        >
-          <SelectTrigger>
-            <SelectValue>
-              {selectedService && (
-                <div className="flex items-center">
-                  {renderServiceIcon(selectedService)}
-                  <span>{selectedService.name} - €{selectedService.priceEur}</span>
-                </div>
-              )}
-            </SelectValue>
-          </SelectTrigger>
-          <SelectContent>
-            {services.map((service) => (
-              <SelectItem key={service.id} value={service.id}>
-                <div className="flex items-center">
-                  {renderServiceIcon(service)}
-                  <span>{service.name} - €{service.priceEur}</span>
-                </div>
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <ServiceSelect
+          selectedService={selectedService}
+          services={services}
+          onServiceChange={handleServiceChange}
+        />
       </div>
 
       <div className="space-y-2">
         <Label htmlFor="stylist">Stylist</Label>
-        <Select
-          value={formData.stylist}
-          onValueChange={(value) =>
-            setFormData({ ...formData, stylist: value })
-          }
-          defaultValue="anyone"
-          required
-        >
-          <SelectTrigger className="w-full">
-            <SelectValue>
-              {formData.stylist && (
-                <div className="flex items-center">
-                  {renderEmployeeIcon(
-                    employeeOptions.find(e => e.id === formData.stylist) || employeeOptions[0]
-                  )}
-                  <span>
-                    {employeeOptions.find(e => e.id === formData.stylist)?.name || "Anyone"}
-                  </span>
-                </div>
-              )}
-            </SelectValue>
-          </SelectTrigger>
-          <SelectContent>
-            {employeeOptions.map((employee) => (
-              <SelectItem key={employee.id} value={employee.id}>
-                <div className="flex items-center">
-                  {renderEmployeeIcon(employee)}
-                  <span>{employee.name}</span>
-                </div>
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <StylistSelect
+          selectedStylistId={formData.stylist}
+          availableEmployees={availableEmployees}
+          onStylistChange={(stylistId) => setFormData({ ...formData, stylist: stylistId })}
+        />
       </div>
 
       <div className="grid grid-cols-2 gap-4">
@@ -223,47 +135,12 @@ export const AppointmentFormFields = ({
         </div>
       </div>
 
-      <div className="space-y-2">
-        <div className="flex items-center justify-between">
-          <Label htmlFor="duration">Duration (minutes)</Label>
-          <div className="flex items-center space-x-2">
-            <input
-              type="checkbox"
-              id="customDuration"
-              checked={customDuration}
-              onChange={(e) => setCustomDuration(e.target.checked)}
-              className="rounded border-gray-300"
-            />
-            <Label htmlFor="customDuration" className="text-sm">Custom duration</Label>
-          </div>
-        </div>
-        
-        {customDuration ? (
-          <Select
-            value={formData.duration}
-            onValueChange={(value) =>
-              setFormData({ ...formData, duration: value })
-            }
-          >
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="30">30 minutes</SelectItem>
-              <SelectItem value="60">60 minutes</SelectItem>
-              <SelectItem value="90">90 minutes</SelectItem>
-              <SelectItem value="120">120 minutes</SelectItem>
-            </SelectContent>
-          </Select>
-        ) : (
-          <Input
-            type="text"
-            value={formData.duration}
-            disabled
-            className="bg-gray-50"
-          />
-        )}
-      </div>
+      <DurationSelect
+        duration={formData.duration}
+        customDuration={customDuration}
+        onDurationChange={(duration) => setFormData({ ...formData, duration })}
+        onCustomDurationChange={setCustomDuration}
+      />
 
       <div className="flex items-center space-x-2">
         <input
