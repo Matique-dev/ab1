@@ -55,7 +55,7 @@ const Business = () => {
             <CardTitle>Exception Dates</CardTitle>
           </div>
           <p className="text-sm text-muted-foreground">
-            Special closure dates & hours
+            Set special closure dates & hours
           </p>
         </CardHeader>
         <CardContent>
