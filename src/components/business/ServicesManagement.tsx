@@ -42,18 +42,9 @@ export const ServicesManagement = () => {
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-row items-center justify-between space-y-0 pb-4">
-        <div className="flex items-center gap-2">
-          <Scissors className="h-6 w-6 text-muted-foreground" />
-          <CardTitle>Services Management</CardTitle>
-        </div>
-        <Button onClick={handleAddService} className="ml-auto">
-          <Plus className="mr-2 h-4 w-4" /> Add Service
-        </Button>
-      </div>
-      <p className="text-sm text-muted-foreground">
-        List your services, standard duration and price
-      </p>
+      <Button onClick={handleAddService} className="ml-auto">
+        <Plus className="mr-2 h-4 w-4" /> Add Service
+      </Button>
       {services.map((service) => (
         <ServiceCard
           key={service.id}

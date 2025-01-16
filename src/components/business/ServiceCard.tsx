@@ -12,7 +12,8 @@ interface ServiceCardProps {
   onDelete: (id: string) => void;
 }
 
-const durations = [15, 30, 45, 60, 90, 120];
+// Generate array of durations from 5 to 120 minutes in 5-minute intervals
+const durations = Array.from({ length: 24 }, (_, i) => (i + 1) * 5);
 
 // Map of icon names to components
 const iconMap = {
