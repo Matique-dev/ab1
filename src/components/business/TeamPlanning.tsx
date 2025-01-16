@@ -17,34 +17,38 @@ export const DEFAULT_BUSINESS_HOURS: WeekSchedule = {
   sunday: { isOpen: false, openTime: "09:00", closeTime: "17:00" },
 };
 
-const DEFAULT_EMPLOYEE_SCHEDULE = {
-  monday: { isAvailable: true, workStart: "09:00", workEnd: "17:00", lunchStart: "12:00", lunchEnd: "13:00" },
-  tuesday: { isAvailable: true, workStart: "09:00", workEnd: "17:00", lunchStart: "12:00", lunchEnd: "13:00" },
-  wednesday: { isAvailable: true, workStart: "09:00", workEnd: "17:00", lunchStart: "12:00", lunchEnd: "13:00" },
-  thursday: { isAvailable: true, workStart: "09:00", workEnd: "17:00", lunchStart: "12:00", lunchEnd: "13:00" },
-  friday: { isAvailable: true, workStart: "09:00", workEnd: "17:00", lunchStart: "12:00", lunchEnd: "13:00" },
-  saturday: { isAvailable: false, workStart: "09:00", workEnd: "17:00", lunchStart: "12:00", lunchEnd: "13:00" },
-  sunday: { isAvailable: false, workStart: "09:00", workEnd: "17:00", lunchStart: "12:00", lunchEnd: "13:00" },
+const createDefaultEmployeeSchedule = (businessHours: WeekSchedule) => {
+  const schedule: { [key: string]: any } = {};
+  Object.entries(businessHours).forEach(([day, hours]) => {
+    schedule[day] = {
+      isAvailable: hours.isOpen,
+      workStart: hours.openTime,
+      workEnd: hours.closeTime,
+      lunchStart: "12:00",
+      lunchEnd: "13:00"
+    };
+  });
+  return schedule;
 };
 
 export const TeamPlanning: React.FC = () => {
   const { toast } = useToast();
+  const [businessHours, setBusinessHours] = useState<WeekSchedule>(DEFAULT_BUSINESS_HOURS);
   const [employees, setEmployees] = useState<Employee[]>([
     {
       id: "manager",
       name: "Manager",
       color: "#FF0000",
-      schedule: DEFAULT_EMPLOYEE_SCHEDULE,
+      schedule: createDefaultEmployeeSchedule(DEFAULT_BUSINESS_HOURS),
     },
   ]);
-  const [businessHours, setBusinessHours] = useState<WeekSchedule>(DEFAULT_BUSINESS_HOURS);
 
   const handleAddEmployee = () => {
     const newEmployee: Employee = {
       id: `employee-${employees.length + 1}`,
       name: `Employee ${employees.length + 1}`,
       color: `#${Math.floor(Math.random()*16777215).toString(16)}`,
-      schedule: DEFAULT_EMPLOYEE_SCHEDULE,
+      schedule: createDefaultEmployeeSchedule(businessHours),
     };
     setEmployees([...employees, newEmployee]);
   };

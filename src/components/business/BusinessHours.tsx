@@ -73,12 +73,11 @@ export const BusinessHours = () => {
   };
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-4 animate-fade-in">
       <Accordion type="single" collapsible className="w-full">
         {DAYS.map((day) => (
-          <AccordionItem value={day.value} key={day.value}>
-
-            <AccordionTrigger className="flex justify-between py-4 px-4 hover:bg-accent/50 rounded-lg">
+          <AccordionItem value={day.value} key={day.value} className="border-b-0 [&:not(:last-child)]:mb-1">
+            <AccordionTrigger className="flex justify-between py-3 px-4 hover:bg-accent/50 rounded-lg">
               <div className="flex items-center gap-4">
                 <Switch
                   checked={schedule[day.value].isOpen}
@@ -144,7 +143,7 @@ export const BusinessHours = () => {
 
       <button
         onClick={handleSave}
-        className="w-full mt-6 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
+        className="w-full mt-4 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
       >
         Save Changes
       </button>
