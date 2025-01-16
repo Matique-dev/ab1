@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Employee, WeekSchedule } from "@/types/schedule";
 import { ServiceType, defaultServices } from "@/types/service";
 import { DEFAULT_BUSINESS_HOURS } from "@/constants/business";
@@ -20,12 +20,9 @@ const defaultManager: Employee = {
   }), {})
 };
 
-// In-memory store since we don't have a backend yet
-let employeesStore: Employee[] = [defaultManager];
-let servicesStore: ServiceType[] = defaultServices;
-let businessHoursStore: WeekSchedule = DEFAULT_BUSINESS_HOURS;
-
 export const useBusinessStore = () => {
+  const queryClient = useQueryClient();
+
   const { data: employees = [defaultManager] } = useQuery({
     queryKey: ['employees'],
     queryFn: () => employeesStore,
@@ -47,15 +44,19 @@ export const useBusinessStore = () => {
   const updateEmployees = (newEmployees: Employee[]) => {
     // Ensure manager is always present
     const hasManager = newEmployees.some(emp => emp.id === "manager");
-    employeesStore = hasManager ? newEmployees : [defaultManager, ...newEmployees];
+    const updatedEmployees = hasManager ? newEmployees : [defaultManager, ...newEmployees];
+    employeesStore = updatedEmployees;
+    queryClient.setQueryData(['employees'], updatedEmployees);
   };
 
   const updateServices = (newServices: ServiceType[]) => {
     servicesStore = newServices;
+    queryClient.setQueryData(['services'], newServices);
   };
 
   const updateBusinessHours = (newHours: WeekSchedule) => {
     businessHoursStore = newHours;
+    queryClient.setQueryData(['businessHours'], newHours);
   };
 
   return {
@@ -67,3 +68,8 @@ export const useBusinessStore = () => {
     updateBusinessHours,
   };
 };
+
+// In-memory store since we don't have a backend yet
+let employeesStore: Employee[] = [defaultManager];
+let servicesStore: ServiceType[] = defaultServices;
+let businessHoursStore: WeekSchedule = DEFAULT_BUSINESS_HOURS;
