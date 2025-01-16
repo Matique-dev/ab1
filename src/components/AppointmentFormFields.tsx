@@ -19,6 +19,7 @@ interface FormData {
   duration: string;
   isWalkIn: boolean;
   selectedDate: string;
+  serviceId?: string;
 }
 
 interface AppointmentFormFieldsProps {
@@ -49,18 +50,23 @@ export const AppointmentFormFields = ({
   useEffect(() => {
     // Initialize selectedService based on the appointment's serviceId
     if (services.length > 0) {
-      const service = services[0];
-      setSelectedService(service);
-      
-      // Only set duration if it's not already set in formData
-      if (!formData.duration) {
-        setFormData({
-          ...formData,
-          duration: service.durationMinutes.toString()
-        });
+      const service = formData.serviceId 
+        ? services.find(s => s.id === formData.serviceId) 
+        : services[0];
+        
+      if (service) {
+        setSelectedService(service);
+        
+        // Only set duration if it's not already set in formData
+        if (!formData.duration) {
+          setFormData({
+            ...formData,
+            duration: service.durationMinutes.toString()
+          });
+        }
       }
     }
-  }, [services]);
+  }, [services, formData.serviceId]);
 
   useEffect(() => {
     // Set custom duration flag if the duration doesn't match any service duration
@@ -76,7 +82,8 @@ export const AppointmentFormFields = ({
     if (selectedService && !customDuration) {
       setFormData({
         ...formData,
-        duration: selectedService.durationMinutes.toString()
+        duration: selectedService.durationMinutes.toString(),
+        serviceId: selectedService.id
       });
     }
   }, [selectedService, customDuration]);
