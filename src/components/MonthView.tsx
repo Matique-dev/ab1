@@ -5,6 +5,7 @@ import {
   isSameDay,
   startOfWeek,
   endOfWeek,
+  format,
 } from "date-fns";
 import { fr } from "date-fns/locale";
 import { useBusinessStore } from "@/hooks/useBusinessStore";
