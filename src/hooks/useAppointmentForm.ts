@@ -36,6 +36,7 @@ export const useAppointmentForm = (
     selectedDate: format(currentDate, 'yyyy-MM-dd'),
   });
 
+  // Reset form data when modal opens/closes or appointment changes
   useEffect(() => {
     if (isOpen) {
       if (appointment) {
