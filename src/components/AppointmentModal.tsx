@@ -13,6 +13,7 @@ import { AppointmentModalContent } from "./AppointmentModalContent";
 import { useAppointmentValidation } from "@/hooks/useAppointmentValidation";
 import { useNotificationStore } from "@/stores/notificationStore";
 import { AvailableEmployeesProvider } from "./appointment/AvailableEmployeesProvider";
+import { ServiceType } from "@/types/service";
 
 interface Appointment {
   id?: string;
@@ -34,6 +35,7 @@ interface AppointmentModalProps {
   isOpen?: boolean;
   onOpenChange?: (open: boolean) => void;
   defaultTime?: string;
+  services: ServiceType[];
 }
 
 export const AppointmentModal = ({ 
@@ -46,6 +48,7 @@ export const AppointmentModal = ({
   isOpen: controlledIsOpen,
   onOpenChange: controlledOnOpenChange,
   defaultTime,
+  services,
 }: AppointmentModalProps) => {
   const [internalIsOpen, setInternalIsOpen] = useState(false);
   const isOpen = controlledIsOpen ?? internalIsOpen;
@@ -120,7 +123,7 @@ export const AppointmentModal = ({
               onDelete={appointment ? onDelete : undefined}
               appointment={appointment}
               availableEmployees={availableEmployees}
-              services={[]}
+              services={services}
             />
           )}
         </AvailableEmployeesProvider>
