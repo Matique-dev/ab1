@@ -27,6 +27,8 @@ interface AppointmentGridProps {
   onAppointmentDelete: (appointmentId: string) => void;
 }
 
+const HEADER_HEIGHT = 40; // Height of the sticky header
+
 export const AppointmentGrid = ({
   dates,
   appointments,
@@ -50,20 +52,15 @@ export const AppointmentGrid = ({
   };
 
   return (
-    <div className="relative ml-16 mr-4 h-full z-10 flex">
-      {dates.map((date, dateIndex) => {
+    <div className="relative ml-16 h-full z-10 grid grid-cols-7">
+      {dates.map((date) => {
         const dayAppointments = appointments.filter(apt => isSameDay(apt.date, date));
         const columnInfo = calculateAppointmentColumns(dayAppointments);
-        const columnWidth = 100 / dates.length;
 
         return (
           <div 
             key={date.toString()} 
             className="relative"
-            style={{ 
-              width: `${columnWidth}%`,
-              minWidth: `${columnWidth}%` 
-            }}
           >
             {dayAppointments.map((apt) => {
               const position = calculateAppointmentPosition(
@@ -73,6 +70,9 @@ export const AppointmentGrid = ({
                 hourHeight,
                 pageMarginPercent
               );
+
+              // Adjust the top position to account for the sticky header
+              position.top += HEADER_HEIGHT;
 
               const serviceDetails = getServiceDetails(apt.serviceId);
 
