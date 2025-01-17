@@ -32,33 +32,29 @@ export const AppointmentFormFields = ({
   services = [],
 }: AppointmentFormFieldsProps) => {
   const [selectedService, setSelectedService] = useState<ServiceType | undefined>();
-  const [customDuration, setCustomDuration] = useState(false);
 
   useEffect(() => {
     if (formData.serviceId) {
       const service = services.find(s => s.id === formData.serviceId);
       if (service) {
         setSelectedService(service);
-        const isCustom = service.durationMinutes.toString() !== formData.duration;
-        setCustomDuration(isCustom);
       }
     }
-  }, [formData.serviceId, formData.duration, services]);
+  }, [formData.serviceId, services]);
 
   useEffect(() => {
-    if (selectedService && !customDuration) {
+    if (selectedService) {
       setFormData({
         ...formData,
         duration: selectedService.durationMinutes.toString(),
         serviceId: selectedService.id
       });
     }
-  }, [selectedService, customDuration]);
+  }, [selectedService]);
 
   const handleServiceChange = (serviceId: string) => {
     const service = services.find(s => s.id === serviceId);
     setSelectedService(service);
-    setCustomDuration(false);
   };
 
   return (
@@ -93,9 +89,7 @@ export const AppointmentFormFields = ({
 
       <DurationSelect
         duration={formData.duration}
-        customDuration={customDuration}
         onDurationChange={(duration) => setFormData({ ...formData, duration })}
-        onCustomDurationChange={setCustomDuration}
       />
 
       <WalkInCheckbox

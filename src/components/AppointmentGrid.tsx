@@ -72,7 +72,6 @@ export const AppointmentGrid = ({
             appointment={apt}
             onAppointmentEdit={onAppointmentEdit}
             onAppointmentDelete={onAppointmentDelete}
-            onAppointmentCreate={() => {}}
             services={services}
             trigger={
               <AppointmentCard
