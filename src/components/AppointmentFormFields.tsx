@@ -52,6 +52,13 @@ export const AppointmentFormFields = ({
 
   return (
     <>
+      <DateTimeInputs
+        selectedDate={formData.selectedDate}
+        time={formData.time}
+        onDateChange={(date) => setFormData({ ...formData, selectedDate: date })}
+        onTimeChange={(time) => setFormData({ ...formData, time })}
+      />
+
       <ClientNameInput
         value={formData.title}
         onChange={(value) => setFormData({ ...formData, title: value })}
@@ -70,13 +77,6 @@ export const AppointmentFormFields = ({
         selectedStylistId={formData.stylist}
         availableEmployees={availableEmployees}
         onStylistChange={(stylistId) => setFormData({ ...formData, stylist: stylistId })}
-      />
-
-      <DateTimeInputs
-        selectedDate={formData.selectedDate}
-        time={formData.time}
-        onDateChange={(date) => setFormData({ ...formData, selectedDate: date })}
-        onTimeChange={(time) => setFormData({ ...formData, time })}
       />
 
       <DurationSelect
