@@ -1,12 +1,12 @@
 import { Employee } from "@/types/schedule";
 import { ServiceType } from "@/types/service";
 import { useState, useEffect } from "react";
-import { ServiceSelect } from "./appointment/ServiceSelect";
-import { StylistSelect } from "./appointment/StylistSelect";
-import { DurationSelect } from "./appointment/DurationSelect";
 import { ClientNameInput } from "./appointment/ClientNameInput";
 import { DateTimeInputs } from "./appointment/DateTimeInputs";
+import { DurationSelect } from "./appointment/DurationSelect";
 import { WalkInCheckbox } from "./appointment/WalkInCheckbox";
+import { ServiceFormField } from "./appointment/form/ServiceFormField";
+import { StylistFormField } from "./appointment/form/StylistFormField";
 
 interface FormData {
   title: string;
@@ -36,9 +36,7 @@ export const AppointmentFormFields = ({
   useEffect(() => {
     if (formData.serviceId) {
       const service = services.find(s => s.id === formData.serviceId);
-      if (service) {
-        setSelectedService(service);
-      }
+      setSelectedService(service);
     }
   }, [formData.serviceId, services]);
 
@@ -52,11 +50,6 @@ export const AppointmentFormFields = ({
     }
   }, [selectedService]);
 
-  const handleServiceChange = (serviceId: string) => {
-    const service = services.find(s => s.id === serviceId);
-    setSelectedService(service);
-  };
-
   return (
     <>
       <ClientNameInput
@@ -64,21 +57,20 @@ export const AppointmentFormFields = ({
         onChange={(value) => setFormData({ ...formData, title: value })}
       />
 
-      <div className="space-y-2">
-        <ServiceSelect
-          selectedService={selectedService}
-          services={services}
-          onServiceChange={handleServiceChange}
-        />
-      </div>
+      <ServiceFormField
+        selectedService={selectedService}
+        services={services}
+        onServiceChange={(serviceId) => {
+          const service = services.find(s => s.id === serviceId);
+          setSelectedService(service);
+        }}
+      />
 
-      <div className="space-y-2">
-        <StylistSelect
-          selectedStylistId={formData.stylist}
-          availableEmployees={availableEmployees}
-          onStylistChange={(stylistId) => setFormData({ ...formData, stylist: stylistId })}
-        />
-      </div>
+      <StylistFormField
+        selectedStylistId={formData.stylist}
+        availableEmployees={availableEmployees}
+        onStylistChange={(stylistId) => setFormData({ ...formData, stylist: stylistId })}
+      />
 
       <DateTimeInputs
         selectedDate={formData.selectedDate}
