@@ -27,20 +27,35 @@ export const useAppointmentForm = (
   appointment?: Appointment,
   isOpen?: boolean
 ) => {
-  const [formData, setFormData] = useState<FormData>({
-    title: "",
-    stylist: "",
-    time: "",
-    duration: "60",
-    isWalkIn: false,
-    selectedDate: format(currentDate, 'yyyy-MM-dd'),
+  const [formData, setFormData] = useState<FormData>(() => {
+    if (appointment) {
+      // Initialize with appointment data if it exists
+      return {
+        title: appointment.title,
+        stylist: appointment.stylist,
+        time: format(appointment.date, 'HH:mm'),
+        duration: appointment.duration,
+        isWalkIn: appointment.isWalkIn,
+        selectedDate: format(appointment.date, 'yyyy-MM-dd'),
+        serviceId: appointment.serviceId,
+      };
+    }
+    // Default initial state
+    return {
+      title: "",
+      stylist: "",
+      time: "",
+      duration: "60",
+      isWalkIn: false,
+      selectedDate: format(currentDate, 'yyyy-MM-dd'),
+    };
   });
 
-  // Reset form data when modal opens/closes or appointment changes
+  // Update form data when modal opens/closes or appointment changes
   useEffect(() => {
     if (isOpen) {
       if (appointment) {
-        // If editing an existing appointment, prefill with appointment data
+        // Update form with appointment data when editing
         setFormData({
           title: appointment.title,
           stylist: appointment.stylist,
@@ -51,7 +66,7 @@ export const useAppointmentForm = (
           serviceId: appointment.serviceId,
         });
       } else {
-        // If creating a new appointment, reset to defaults
+        // Reset form for new appointment
         setFormData({
           title: "",
           stylist: "",

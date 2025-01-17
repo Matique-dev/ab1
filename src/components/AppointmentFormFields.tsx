@@ -35,14 +35,12 @@ export const AppointmentFormFields = ({
 
   // Initialize selected service and custom duration when formData changes
   useEffect(() => {
-    if (services.length > 0 && formData.serviceId) {
+    if (formData.serviceId) {
       const service = services.find(s => s.id === formData.serviceId);
       if (service) {
         setSelectedService(service);
-        // Check if the duration matches any service duration
-        const isCustom = !services.some(s => 
-          s.durationMinutes.toString() === formData.duration
-        );
+        // Check if the duration matches the service duration
+        const isCustom = service.durationMinutes.toString() !== formData.duration;
         setCustomDuration(isCustom);
       }
     }
