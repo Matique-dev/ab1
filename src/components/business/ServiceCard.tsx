@@ -1,26 +1,19 @@
 import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Scissors, Brush, Droplet, Trash2, GripVertical } from 'lucide-react';
 import { ServiceType } from '@/types/service';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import { Trash2, GripVertical } from 'lucide-react';
+import { ServiceNameInput } from './service/ServiceNameInput';
+import { DurationSelect } from './service/DurationSelect';
+import { PriceInput } from './service/PriceInput';
 
 interface ServiceCardProps {
   service: ServiceType;
   onUpdate: (updatedService: ServiceType) => void;
   onDelete: (id: string) => void;
 }
-
-const iconMap = {
-  scissors: Scissors,
-  brush: Brush,
-  droplet: Droplet
-};
-
-const durations = Array.from({ length: 24 }, (_, i) => (i + 1) * 5);
 
 export const ServiceCard = ({ service, onUpdate, onDelete }: ServiceCardProps) => {
   const {
@@ -38,8 +31,6 @@ export const ServiceCard = ({ service, onUpdate, onDelete }: ServiceCardProps) =
     opacity: isDragging ? 0.5 : 1,
   };
 
-  const IconComponent = iconMap[service.icon as keyof typeof iconMap];
-
   return (
     <div ref={setNodeRef} style={style}>
       <Card className="mb-4">
@@ -54,47 +45,22 @@ export const ServiceCard = ({ service, onUpdate, onDelete }: ServiceCardProps) =
               <GripVertical className="h-5 w-5 text-salon-gray" />
             </Button>
 
-            <div className="flex items-center space-x-2 md:w-1/3">
-              {IconComponent && <IconComponent className="h-5 w-5 text-salon-gray" />}
-              <Input
-                value={service.name}
-                onChange={(e) => onUpdate({ ...service, name: e.target.value })}
-                className="flex-1"
-              />
-            </div>
+            <ServiceNameInput
+              value={service.name}
+              icon={service.icon as 'scissors' | 'brush' | 'droplet'}
+              onChange={(name) => onUpdate({ ...service, name })}
+            />
             
             <div className="flex space-x-4 md:w-2/3">
-              <Select
-                value={service.durationMinutes.toString()}
-                onValueChange={(value) => 
-                  onUpdate({ ...service, durationMinutes: parseInt(value) })
-                }
-              >
-                <SelectTrigger className="w-[140px]">
-                  <SelectValue placeholder="Duration" />
-                </SelectTrigger>
-                <SelectContent>
-                  {durations.map((duration) => (
-                    <SelectItem key={duration} value={duration.toString()}>
-                      {duration} min
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <DurationSelect
+                value={service.durationMinutes}
+                onChange={(durationMinutes) => onUpdate({ ...service, durationMinutes })}
+              />
 
-              <div className="relative flex-1">
-                <Input
-                  type="number"
-                  value={service.priceEur}
-                  onChange={(e) => 
-                    onUpdate({ ...service, priceEur: parseFloat(e.target.value) })
-                  }
-                  className="pl-8"
-                />
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-salon-gray">
-                  €
-                </span>
-              </div>
+              <PriceInput
+                value={service.priceEur}
+                onChange={(priceEur) => onUpdate({ ...service, priceEur })}
+              />
 
               <Button
                 variant="ghost"
