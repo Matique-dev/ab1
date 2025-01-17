@@ -24,6 +24,8 @@ export const StylistSelect = ({
     ...availableEmployees
   ];
 
+  const selectedEmployee = employeeOptions.find(e => e.id === selectedStylistId);
+
   const renderEmployeeIcon = (employee: { color: string }) => {
     return (
       <div 
@@ -38,18 +40,13 @@ export const StylistSelect = ({
       value={selectedStylistId}
       onValueChange={onStylistChange}
       defaultValue="anyone"
-      required
     >
       <SelectTrigger className="w-full">
         <SelectValue>
-          {selectedStylistId && (
+          {selectedEmployee && (
             <div className="flex items-center">
-              {renderEmployeeIcon(
-                employeeOptions.find(e => e.id === selectedStylistId) || employeeOptions[0]
-              )}
-              <span>
-                {employeeOptions.find(e => e.id === selectedStylistId)?.name || "Anyone"}
-              </span>
+              {renderEmployeeIcon(selectedEmployee)}
+              <span>{selectedEmployee.name}</span>
             </div>
           )}
         </SelectValue>

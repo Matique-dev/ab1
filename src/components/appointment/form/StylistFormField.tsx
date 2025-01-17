@@ -1,5 +1,6 @@
 import { Employee } from "@/types/schedule";
 import { StylistSelect } from "../StylistSelect";
+import { Label } from "@/components/ui/label";
 
 interface StylistFormFieldProps {
   selectedStylistId: string;
@@ -14,6 +15,7 @@ export const StylistFormField = ({
 }: StylistFormFieldProps) => {
   return (
     <div className="space-y-2">
+      <Label htmlFor="stylist">Stylist</Label>
       <StylistSelect
         selectedStylistId={selectedStylistId}
         availableEmployees={availableEmployees}

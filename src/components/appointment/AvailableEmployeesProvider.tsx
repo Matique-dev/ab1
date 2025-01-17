@@ -17,6 +17,11 @@ export const AvailableEmployeesProvider = ({
   const { employees = [], businessHours, exceptionDates = [] } = useBusinessStore();
 
   const getAvailableEmployees = () => {
+    // If no time is selected yet, return all employees
+    if (!currentTime) {
+      return employees;
+    }
+
     const dayOfWeek = format(currentDate, 'EEEE').toLowerCase();
 
     // Check for exception dates
