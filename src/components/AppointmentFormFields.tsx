@@ -1,11 +1,12 @@
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Employee } from "@/types/schedule";
 import { ServiceType } from "@/types/service";
 import { useState, useEffect } from "react";
 import { ServiceSelect } from "./appointment/ServiceSelect";
 import { StylistSelect } from "./appointment/StylistSelect";
 import { DurationSelect } from "./appointment/DurationSelect";
+import { ClientNameInput } from "./appointment/ClientNameInput";
+import { DateTimeInputs } from "./appointment/DateTimeInputs";
+import { WalkInCheckbox } from "./appointment/WalkInCheckbox";
 
 interface FormData {
   title: string;
@@ -33,20 +34,17 @@ export const AppointmentFormFields = ({
   const [selectedService, setSelectedService] = useState<ServiceType | undefined>();
   const [customDuration, setCustomDuration] = useState(false);
 
-  // Initialize selected service and custom duration when formData changes
   useEffect(() => {
     if (formData.serviceId) {
       const service = services.find(s => s.id === formData.serviceId);
       if (service) {
         setSelectedService(service);
-        // Check if the duration matches the service duration
         const isCustom = service.durationMinutes.toString() !== formData.duration;
         setCustomDuration(isCustom);
       }
     }
   }, [formData.serviceId, formData.duration, services]);
 
-  // Update form data when service changes
   useEffect(() => {
     if (selectedService && !customDuration) {
       setFormData({
@@ -60,25 +58,17 @@ export const AppointmentFormFields = ({
   const handleServiceChange = (serviceId: string) => {
     const service = services.find(s => s.id === serviceId);
     setSelectedService(service);
-    setCustomDuration(false); // Reset custom duration when service changes
+    setCustomDuration(false);
   };
 
   return (
     <>
-      <div className="space-y-2">
-        <Label htmlFor="title">Client Name</Label>
-        <Input
-          id="title"
-          value={formData.title}
-          onChange={(e) =>
-            setFormData({ ...formData, title: e.target.value })
-          }
-          required
-        />
-      </div>
+      <ClientNameInput
+        value={formData.title}
+        onChange={(value) => setFormData({ ...formData, title: value })}
+      />
 
       <div className="space-y-2">
-        <Label htmlFor="service">Service</Label>
         <ServiceSelect
           selectedService={selectedService}
           services={services}
@@ -87,7 +77,6 @@ export const AppointmentFormFields = ({
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="stylist">Stylist</Label>
         <StylistSelect
           selectedStylistId={formData.stylist}
           availableEmployees={availableEmployees}
@@ -95,32 +84,12 @@ export const AppointmentFormFields = ({
         />
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="date">Date</Label>
-          <Input
-            id="date"
-            type="date"
-            value={formData.selectedDate}
-            onChange={(e) =>
-              setFormData({ ...formData, selectedDate: e.target.value })
-            }
-            required
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="time">Time</Label>
-          <Input
-            id="time"
-            type="time"
-            value={formData.time}
-            onChange={(e) =>
-              setFormData({ ...formData, time: e.target.value })
-            }
-            required
-          />
-        </div>
-      </div>
+      <DateTimeInputs
+        selectedDate={formData.selectedDate}
+        time={formData.time}
+        onDateChange={(date) => setFormData({ ...formData, selectedDate: date })}
+        onTimeChange={(time) => setFormData({ ...formData, time })}
+      />
 
       <DurationSelect
         duration={formData.duration}
@@ -129,18 +98,10 @@ export const AppointmentFormFields = ({
         onCustomDurationChange={setCustomDuration}
       />
 
-      <div className="flex items-center space-x-2">
-        <input
-          type="checkbox"
-          id="walkIn"
-          checked={formData.isWalkIn}
-          onChange={(e) =>
-            setFormData({ ...formData, isWalkIn: e.target.checked })
-          }
-          className="rounded border-gray-300"
-        />
-        <Label htmlFor="walkIn">Walk-in appointment</Label>
-      </div>
+      <WalkInCheckbox
+        checked={formData.isWalkIn}
+        onChange={(checked) => setFormData({ ...formData, isWalkIn: checked })}
+      />
     </>
   );
 };
