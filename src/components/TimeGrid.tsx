@@ -1,5 +1,6 @@
 import { format } from "date-fns";
 import { useBusinessStore } from "@/hooks/useBusinessStore";
+import { isWithinBusinessHours, isWithinExceptionHours } from "@/utils/appointmentValidation";
 
 interface TimeGridProps {
   hours: number[];
@@ -10,15 +11,33 @@ interface TimeGridProps {
 }
 
 export const TimeGrid = ({ hours, startHour, hourHeight, mode = 'day', dates = [] }: TimeGridProps) => {
-  const { businessHours } = useBusinessStore();
-  const dayOfWeek = format(dates[0], 'EEEE').toLowerCase();
-  const { openTime, closeTime } = businessHours[dayOfWeek];
-  
-  const [openHour] = openTime.split(':').map(Number);
-  const [closeHour] = closeTime.split(':').map(Number);
+  const { businessHours, exceptionDates } = useBusinessStore();
 
-  const isBusinessHour = (hour: number) => {
-    return hour >= openHour && hour < closeHour;
+  const isHourAvailable = (hour: number, date: Date) => {
+    const time = `${hour.toString().padStart(2, '0')}:00`;
+    const duration = "60"; // We check availability for the full hour
+
+    // First check exception dates
+    const exceptionCheck = isWithinExceptionHours(
+      date,
+      time,
+      duration,
+      exceptionDates
+    );
+
+    if (!exceptionCheck.isValid) {
+      return false;
+    }
+
+    // Then check regular business hours
+    const businessHoursCheck = isWithinBusinessHours(
+      date,
+      time,
+      duration,
+      businessHours
+    );
+
+    return businessHoursCheck.isValid;
   };
 
   return (
@@ -39,27 +58,67 @@ export const TimeGrid = ({ hours, startHour, hourHeight, mode = 'day', dates = [
 
       {/* Time grid lines */}
       <div className="absolute inset-0 z-0">
-        {hours.map((hour) => (
+        {mode === 'week' ? (
+          // Week view - create grid for each day
+          <div className="flex h-full">
+            {dates.map((date, dateIndex) => (
+              <div key={date.toString()} className="flex-1">
+                {hours.map((hour) => (
+                  <>
+                    {/* Full hour line with non-business hours styling */}
+                    <div 
+                      key={`grid-${hour}-${dateIndex}`}
+                      className={`absolute w-[calc(100%/7)] border-t border-gray-200 ${
+                        !isHourAvailable(hour, date) ? 
+                        'bg-[linear-gradient(135deg,transparent_46%,#e5e7eb_49%,#e5e7eb_51%,transparent_55%)] bg-[length:10px_10px]' : ''
+                      }`}
+                      style={{ 
+                        top: `${(hour - startHour) * hourHeight}px`,
+                        height: `${hourHeight}px`,
+                        left: `${(dateIndex * 100) / 7}%`
+                      }}
+                    />
+                    {/* Half hour line */}
+                    <div 
+                      key={`grid-${hour}-30-${dateIndex}`}
+                      className="absolute w-[calc(100%/7)] border-t border-gray-200 opacity-50"
+                      style={{ 
+                        top: `${(hour - startHour) * hourHeight + hourHeight/2}px`,
+                        left: `${(dateIndex * 100) / 7}%`
+                      }}
+                    />
+                  </>
+                ))}
+              </div>
+            ))}
+          </div>
+        ) : (
+          // Day view - single column
           <>
-            {/* Full hour line with non-business hours styling */}
-            <div 
-              key={`grid-${hour}`}
-              className={`absolute w-full border-t border-gray-200 ${
-                !isBusinessHour(hour) ? 'bg-[linear-gradient(45deg,transparent_46%,#aaadb0_49%,#aaadb0_51%,transparent_55%)] bg-[length:10px_10px]' : ''
-              }`}
-              style={{ 
-                top: `${(hour - startHour) * hourHeight}px`,
-                height: `${hourHeight}px`
-              }}
-            />
-            {/* Half hour line */}
-            <div 
-              key={`grid-${hour}-30`}
-              className="absolute w-full border-t border-gray-200 opacity-50"
-              style={{ top: `${(hour - startHour) * hourHeight + hourHeight/2}px` }}
-            />
+            {hours.map((hour) => (
+              <>
+                {/* Full hour line with non-business hours styling */}
+                <div 
+                  key={`grid-${hour}`}
+                  className={`absolute w-full border-t border-gray-200 ${
+                    !isHourAvailable(hour, dates[0]) ? 
+                    'bg-[linear-gradient(135deg,transparent_46%,#e5e7eb_49%,#e5e7eb_51%,transparent_55%)] bg-[length:10px_10px]' : ''
+                  }`}
+                  style={{ 
+                    top: `${(hour - startHour) * hourHeight}px`,
+                    height: `${hourHeight}px`
+                  }}
+                />
+                {/* Half hour line */}
+                <div 
+                  key={`grid-${hour}-30`}
+                  className="absolute w-full border-t border-gray-200 opacity-50"
+                  style={{ top: `${(hour - startHour) * hourHeight + hourHeight/2}px` }}
+                />
+              </>
+            ))}
           </>
-        ))}
+        )}
       </div>
 
       {/* Time scale background */}
