@@ -23,11 +23,10 @@ interface AppointmentGridProps {
   startHour: number;
   hourHeight: number;
   pageMarginPercent: number;
+  mode?: 'day' | 'week';
   onAppointmentEdit: (appointment: Appointment) => void;
   onAppointmentDelete: (appointmentId: string) => void;
 }
-
-const HEADER_HEIGHT = 40; // Height of the sticky header
 
 export const AppointmentGrid = ({
   dates,
@@ -36,6 +35,7 @@ export const AppointmentGrid = ({
   startHour,
   hourHeight,
   pageMarginPercent,
+  mode = 'day',
   onAppointmentEdit,
   onAppointmentDelete,
 }: AppointmentGridProps) => {
@@ -68,11 +68,9 @@ export const AppointmentGrid = ({
                 columnInfo,
                 startHour,
                 hourHeight,
-                pageMarginPercent
+                pageMarginPercent,
+                mode
               );
-
-              // Adjust the top position to account for the sticky header
-              position.top += HEADER_HEIGHT;
 
               const serviceDetails = getServiceDetails(apt.serviceId);
 

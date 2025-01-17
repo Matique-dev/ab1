@@ -74,12 +74,15 @@ export const calculateAppointmentPosition = (
   columnInfo: ColumnInfo,
   startHour: number,
   hourHeight: number,
-  pageMarginPercent: number
+  pageMarginPercent: number,
+  mode: 'day' | 'week' = 'day'
 ) => {
   const startMinutes = getTimeInMinutes(appointment.time);
   const duration = parseInt(appointment.duration);
+  const HEADER_HEIGHT = 40;
 
-  const topPosition = ((startMinutes - startHour * 60) / 60) * hourHeight;
+  // Adjust top position to account for header height
+  const topPosition = ((startMinutes - startHour * 60) / 60) * hourHeight + HEADER_HEIGHT;
   const height = (duration / 60) * hourHeight;
 
   const startHourLocal = Math.floor(startMinutes / 60);
@@ -90,11 +93,22 @@ export const calculateAppointmentPosition = (
     maxColumnCount = Math.max(maxColumnCount, (columnInfo.maxColumns[hour] || 0) + 1);
   }
 
-  const columnWidth = (100 - pageMarginPercent * 2) / maxColumnCount;
-  const column = columnInfo.columns[appointment.id];
+  // Different width calculations for day and week views
+  let columnWidth, left;
+  if (mode === 'day') {
+    // Day view: divide available width by concurrent appointments
+    columnWidth = (100 - pageMarginPercent * 2) / maxColumnCount;
+    left = columnInfo.columns[appointment.id] * columnWidth + pageMarginPercent;
+  } else {
+    // Week view: fixed column width
+    columnWidth = (100 - pageMarginPercent * 2) / 7;
+    left = columnInfo.columns[appointment.id] * columnWidth + pageMarginPercent;
+  }
 
-  const width = `${columnWidth}%`;
-  const left = `${column * columnWidth + pageMarginPercent}%`;
-
-  return { top: topPosition, height, width, left };
+  return { 
+    top: topPosition, 
+    height, 
+    width: `${columnWidth}%`, 
+    left: `${left}%` 
+  };
 };
