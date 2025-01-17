@@ -79,9 +79,8 @@ export const calculateAppointmentPosition = (
 ) => {
   const startMinutes = getTimeInMinutes(appointment.time);
   const duration = parseInt(appointment.duration);
-  const HEADER_HEIGHT = 40;
 
-  // Calculate vertical position (same for both modes)
+  // Calculate vertical position without header offset
   const topPosition = ((startMinutes - startHour * 60) / 60) * hourHeight;
   const height = (duration / 60) * hourHeight;
 
@@ -93,25 +92,35 @@ export const calculateAppointmentPosition = (
     maxColumnCount = Math.max(maxColumnCount, (columnInfo.maxColumns[hour] || 0) + 1);
   }
 
+  console.log(`Mode: ${mode}, MaxColumnCount: ${maxColumnCount}`);
+
   // Calculate width and left position based on view mode
   let width: string;
   let left: string;
 
   if (mode === 'day') {
-    // Day view: full width unless there are concurrent appointments
+    // Day view: use full width unless there are concurrent appointments
     const columnWidth = maxColumnCount > 1 
       ? (100 - pageMarginPercent * 2) / maxColumnCount
       : 100 - pageMarginPercent * 2;
-      
+    
+    const leftPosition = maxColumnCount > 1
+      ? columnInfo.columns[appointment.id] * columnWidth + pageMarginPercent
+      : pageMarginPercent;
+
     width = `${columnWidth}%`;
-    left = maxColumnCount > 1
-      ? `${columnInfo.columns[appointment.id] * columnWidth + pageMarginPercent}%`
-      : `${pageMarginPercent}%`;
+    left = `${leftPosition}%`;
+
+    console.log(`Day View - Width: ${width}, Left: ${left}, Top: ${topPosition}`);
   } else {
-    // Week view: fixed column width
+    // Week view: fixed width per day column
     const columnWidth = (100 - pageMarginPercent * 2) / 7;
+    const leftPosition = columnInfo.columns[appointment.id] * columnWidth + pageMarginPercent;
+    
     width = `${columnWidth}%`;
-    left = `${columnInfo.columns[appointment.id] * columnWidth + pageMarginPercent}%`;
+    left = `${leftPosition}%`;
+
+    console.log(`Week View - Width: ${width}, Left: ${left}, Top: ${topPosition}`);
   }
 
   return { 

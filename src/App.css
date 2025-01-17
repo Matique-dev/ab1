@@ -47,6 +47,14 @@
   position: relative;
   width: 100%;
   height: 100%;
+  overflow: hidden; /* Add this to prevent any overflow issues */
+}
+
+/* Ensure appointment containers have proper positioning context */
+.appointment-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
 }
 
 @media (max-width: 640px) {
