@@ -26,7 +26,7 @@ interface Appointment {
 }
 
 interface AppointmentModalProps {
-  onAppointmentCreate: (appointment: Omit<Appointment, "id">) => void;
+  onAppointmentCreate?: (appointment: Omit<Appointment, "id">) => void;
   onAppointmentEdit?: (appointment: Appointment) => void;
   onAppointmentDelete?: (appointmentId: string) => void;
   currentDate: Date;
