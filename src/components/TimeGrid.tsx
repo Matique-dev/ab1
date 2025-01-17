@@ -4,11 +4,27 @@ interface TimeGridProps {
   hours: number[];
   startHour: number;
   hourHeight: number;
+  mode?: 'day' | 'week';
+  dates?: Date[];
 }
 
-export const TimeGrid = ({ hours, startHour, hourHeight }: TimeGridProps) => {
+export const TimeGrid = ({ hours, startHour, hourHeight, mode = 'day', dates = [] }: TimeGridProps) => {
   return (
     <>
+      {/* Column headers for week view */}
+      {mode === 'week' && dates.length > 0 && (
+        <div className="absolute top-0 left-16 right-0 flex border-b border-gray-200 bg-white z-20">
+          {dates.map((date, index) => (
+            <div
+              key={date.toString()}
+              className="flex-1 px-2 py-1 text-sm font-medium text-gray-600 text-center border-l first:border-l-0 border-gray-200"
+            >
+              {format(date, 'EEE d')}
+            </div>
+          ))}
+        </div>
+      )}
+
       {/* Time grid lines */}
       <div className="absolute inset-0 z-0">
         {hours.map((hour) => (
