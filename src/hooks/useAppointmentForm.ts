@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { format } from "date-fns";
+import { format, addHours, startOfHour } from "date-fns";
+import { useBusinessStore } from "./useBusinessStore";
 
 interface Appointment {
   id?: string;
@@ -27,6 +28,14 @@ export const useAppointmentForm = (
   appointment?: Appointment,
   isOpen?: boolean
 ) => {
+  const { services } = useBusinessStore();
+  
+  // Get next hour for default time
+  const getDefaultTime = () => {
+    const nextHour = addHours(startOfHour(new Date()), 1);
+    return format(nextHour, 'HH:mm');
+  };
+
   const [formData, setFormData] = useState<FormData>(() => {
     if (appointment) {
       // Initialize with appointment data if it exists
@@ -40,14 +49,17 @@ export const useAppointmentForm = (
         serviceId: appointment.serviceId,
       };
     }
-    // Default initial state
+    
+    // Default initial state for new appointment
+    const defaultService = services[0];
     return {
-      title: "",
-      stylist: "",
-      time: "",
-      duration: "60",
+      title: "Client name",
+      stylist: "anyone",
+      time: getDefaultTime(),
+      duration: defaultService?.durationMinutes.toString() || "60",
       isWalkIn: false,
       selectedDate: format(currentDate, 'yyyy-MM-dd'),
+      serviceId: defaultService?.id,
     };
   });
 
@@ -66,18 +78,20 @@ export const useAppointmentForm = (
           serviceId: appointment.serviceId,
         });
       } else {
-        // Reset form for new appointment
+        // Reset form for new appointment with default values
+        const defaultService = services[0];
         setFormData({
-          title: "",
-          stylist: "",
-          time: "",
-          duration: "60",
+          title: "Client name",
+          stylist: "anyone",
+          time: getDefaultTime(),
+          duration: defaultService?.durationMinutes.toString() || "60",
           isWalkIn: false,
           selectedDate: format(currentDate, 'yyyy-MM-dd'),
+          serviceId: defaultService?.id,
         });
       }
     }
-  }, [isOpen, appointment, currentDate]);
+  }, [isOpen, appointment, currentDate, services]);
 
   return {
     formData,
