@@ -1,69 +1,82 @@
-# Welcome to your Lovable project
+# Salon Appointment System
 
-## Project info
+## Overview
+This is a modular appointment management system for salons. It provides functionality for scheduling, managing, and tracking appointments with various service providers.
 
-**URL**: https://lovable.dev/projects/19d4ba7f-ca14-445e-8437-3a2f904b8979
+## Core Features
+- Appointment scheduling and management
+- Service provider (stylist) management
+- Service catalog
+- Business hours management
+- Walk-in appointment support
 
-## How can I edit this code?
+## Component Structure
 
-There are several ways of editing your application.
+### Main Components
+- `AppointmentModal`: Main modal for creating/editing appointments
+- `AppointmentGrid`: Visual representation of daily appointments
+- `AppointmentCard`: Individual appointment display
+- `AppointmentFormFields`: Form fields for appointment data
 
-**Use Lovable**
+### Utility Components
+- `DateTimeInputs`: Date and time selection
+- `ClientNameInput`: Client name input field
+- `ServiceSelect`: Service selection dropdown
+- `StylistSelect`: Stylist selection dropdown
+- `DurationSelect`: Duration selection
+- `WalkInCheckbox`: Walk-in toggle
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/19d4ba7f-ca14-445e-8437-3a2f904b8979) and start prompting.
+## State Management
+- Uses React Query for server state management
+- Local state for UI interactions
+- Business hours and employee schedules in store
 
-Changes made via Lovable will be committed automatically to this repo.
+## Data Types
 
-**Use your preferred IDE**
+### Key Interfaces
+- `Appointment`: Core appointment data
+- `Employee`: Stylist/employee information
+- `ServiceType`: Available services
+- `WeekSchedule`: Business hours structure
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+## Integration Requirements
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+### Theme System
+Components use Tailwind CSS and support light/dark themes.
 
-Follow these steps:
+### Authentication
+Components are prepared for auth integration with:
+- Role-based access control
+- User context awareness
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+### Localization
+Text strings are prepared for translation system integration.
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+### Backend Requirements
+Prepared for Supabase integration with:
+- Appointments table
+- Services table
+- Employee schedules
+- Business hours
+- Exception dates
 
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
-```
-
-**Edit a file directly in GitHub**
-
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
-
-**Use GitHub Codespaces**
-
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
-
-## What technologies are used for this project?
-
-This project is built with .
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
+## Dependencies
+- @tanstack/react-query
+- date-fns
+- lucide-react
+- shadcn/ui components
 - Tailwind CSS
 
-## How can I deploy this project?
+## Getting Started
+1. Install required dependencies
+2. Set up authentication context
+3. Configure backend connection
+4. Implement localization
+5. Integrate with navigation system
 
-Simply open [Lovable](https://lovable.dev/projects/19d4ba7f-ca14-445e-8437-3a2f904b8979) and click on Share -> Publish.
-
-## I want to use a custom domain - is that possible?
-
-We don't support custom domains (yet). If you want to deploy your project under your own domain then we recommend using Netlify. Visit our docs for more details: [Custom domains](https://docs.lovable.dev/tips-tricks/custom-domain/)
+## Best Practices
+- Use TypeScript for type safety
+- Follow React Query patterns for data fetching
+- Implement proper error handling
+- Maintain accessibility standards
+- Use responsive design patterns
