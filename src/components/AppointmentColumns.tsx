@@ -74,13 +74,11 @@ export const calculateAppointmentPosition = (
   columnInfo: ColumnInfo,
   startHour: number,
   hourHeight: number,
-  pageMarginPercent: number,
-  mode: 'day' | 'week' = 'day'
+  pageMarginPercent: number
 ) => {
   const startMinutes = getTimeInMinutes(appointment.time);
   const duration = parseInt(appointment.duration);
 
-  // Calculate vertical position relative to the start hour
   const topPosition = ((startMinutes - startHour * 60) / 60) * hourHeight;
   const height = (duration / 60) * hourHeight;
 
@@ -92,42 +90,11 @@ export const calculateAppointmentPosition = (
     maxColumnCount = Math.max(maxColumnCount, (columnInfo.maxColumns[hour] || 0) + 1);
   }
 
-  console.log(`Mode: ${mode}, MaxColumnCount: ${maxColumnCount}`);
+  const columnWidth = (100 - pageMarginPercent * 2) / maxColumnCount;
+  const column = columnInfo.columns[appointment.id];
 
-  // Calculate width and left position based on view mode
-  let width: string;
-  let left: string;
+  const width = `${columnWidth}%`;
+  const left = `${column * columnWidth + pageMarginPercent}%`;
 
-  if (mode === 'day') {
-    // Day view: use full width unless there are concurrent appointments
-    const columnWidth = maxColumnCount > 1 
-      ? (100 - pageMarginPercent * 2) / maxColumnCount
-      : 100 - pageMarginPercent * 2;
-    
-    const leftPosition = maxColumnCount > 1
-      ? columnInfo.columns[appointment.id] * columnWidth + pageMarginPercent
-      : pageMarginPercent;
-
-    width = `${columnWidth}%`;
-    left = `${leftPosition}%`;
-
-    console.log(`Day View - Width: ${width}, Left: ${left}, Top: ${topPosition}`);
-  } else {
-    // Week view: fixed width per day column
-    const dayWidth = (100 - pageMarginPercent * 2) / 7;
-    const columnWidth = maxColumnCount > 1 ? dayWidth / maxColumnCount : dayWidth;
-    const leftPosition = (columnInfo.columns[appointment.id] % 7) * dayWidth + pageMarginPercent;
-    
-    width = `${columnWidth}%`;
-    left = `${leftPosition}%`;
-
-    console.log(`Week View - Width: ${width}, Left: ${left}, Top: ${topPosition}`);
-  }
-
-  return { 
-    top: topPosition, 
-    height, 
-    width, 
-    left 
-  };
+  return { top: topPosition, height, width, left };
 };

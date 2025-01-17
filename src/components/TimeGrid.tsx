@@ -16,8 +16,9 @@ export const TimeGrid = ({ hours, startHour, hourHeight, mode = 'day', dates = [
 
   const isHourAvailable = (hour: number, date: Date) => {
     const time = `${hour.toString().padStart(2, '0')}:00`;
-    const duration = "60";
+    const duration = "60"; // We check availability for the full hour
 
+    // First check exception dates
     const exceptionCheck = isWithinExceptionHours(
       date,
       time,
@@ -25,10 +26,12 @@ export const TimeGrid = ({ hours, startHour, hourHeight, mode = 'day', dates = [
       exceptionDates
     );
 
+    // If there's an exception, use its result
     if (exceptionCheck.hasException) {
       return exceptionCheck.isValid;
     }
 
+    // Otherwise, check regular business hours
     const businessHoursCheck = isWithinBusinessHours(
       date,
       time,
@@ -40,34 +43,35 @@ export const TimeGrid = ({ hours, startHour, hourHeight, mode = 'day', dates = [
   };
 
   return (
-    <div className="timeline-layout">
+    <>
       {/* Column headers for week view */}
       {mode === 'week' && dates.length > 0 && (
-        <div className="sticky top-0 bg-white z-20 ml-16 border-b border-gray-200">
-          <div className="grid grid-cols-7 h-10">
-            {dates.map((date) => (
-              <div
-                key={date.toString()}
-                className="px-2 py-1 text-sm font-medium text-gray-600 text-center border-l first:border-l-0 border-gray-200 flex items-center justify-center"
-              >
-                {format(date, 'EEE d')}
-              </div>
-            ))}
-          </div>
+        <div className="sticky top-0 left-16 right-0 flex border-b border-gray-200 bg-white z-20 pt-4">
+          {dates.map((date, index) => (
+            <div
+              key={date.toString()}
+              className="flex-1 px-2 py-1 text-sm font-medium text-gray-600 text-center border-l first:border-l-0 border-gray-200"
+            >
+              {format(date, 'EEE d')}
+            </div>
+          ))}
         </div>
       )}
 
       {/* Time grid lines */}
       <div className="absolute inset-0 z-0">
         {mode === 'week' ? (
-          <div className="grid grid-cols-7 h-full ml-16">
-            {dates.map((date) => (
+          // Week view - create grid for each day
+          <div className="flex h-full">
+            {dates.map((date, dateIndex) => (
               <div 
                 key={date.toString()} 
-                className="relative"
+                className="flex-1 relative"
+                style={{ width: `${100/7}%` }}
               >
                 {hours.map((hour) => (
                   <React.Fragment key={`${date}-${hour}`}>
+                    {/* Full hour line with non-business hours styling */}
                     <div 
                       className={`absolute w-full border-t border-gray-200 ${
                         !isHourAvailable(hour, date) ? 
@@ -78,6 +82,7 @@ export const TimeGrid = ({ hours, startHour, hourHeight, mode = 'day', dates = [
                         height: `${hourHeight}px`,
                       }}
                     />
+                    {/* Half hour line */}
                     <div 
                       className="absolute w-full border-t border-gray-200 opacity-50"
                       style={{ 
@@ -90,6 +95,7 @@ export const TimeGrid = ({ hours, startHour, hourHeight, mode = 'day', dates = [
             ))}
           </div>
         ) : (
+          // Day view - single column
           <>
             {hours.map((hour) => (
               <React.Fragment key={hour}>
@@ -115,8 +121,10 @@ export const TimeGrid = ({ hours, startHour, hourHeight, mode = 'day', dates = [
         )}
       </div>
 
-      {/* Time scale */}
+      {/* Time scale background */}
       <div className="absolute top-0 left-0 w-16 h-full bg-white z-20" />
+      
+      {/* Time labels */}
       <div className="absolute top-0 left-0 w-16 z-30">
         {hours.map((hour) => (
           <div
@@ -128,6 +136,6 @@ export const TimeGrid = ({ hours, startHour, hourHeight, mode = 'day', dates = [
           </div>
         ))}
       </div>
-    </div>
+    </>
   );
 };

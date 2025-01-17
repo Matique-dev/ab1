@@ -103,7 +103,6 @@ export const TimelineView = ({
           startHour={START_HOUR}
           hourHeight={HOUR_HEIGHT}
           pageMarginPercent={PAGE_MARGIN_PERCENT}
-          mode={mode}
           onAppointmentEdit={onAppointmentEdit}
           onAppointmentDelete={onAppointmentDelete}
         />

@@ -40,25 +40,3 @@
 .read-the-docs {
   color: #888;
 }
-
-.timeline-layout {
-  display: grid;
-  grid-template-columns: [timeline] 4rem [content] 1fr;
-  position: relative;
-  width: 100%;
-  height: 100%;
-  overflow: hidden; /* Add this to prevent any overflow issues */
-}
-
-/* Ensure appointment containers have proper positioning context */
-.appointment-container {
-  position: relative;
-  width: 100%;
-  height: 100%;
-}
-
-@media (max-width: 640px) {
-  .timeline-layout {
-    grid-template-columns: [timeline] 3rem [content] 1fr;
-  }
-}
