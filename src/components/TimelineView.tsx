@@ -2,23 +2,14 @@ import { useRef } from "react";
 import { addDays } from "date-fns";
 import { TimeGrid } from "./TimeGrid";
 import { AppointmentGrid } from "./AppointmentGrid";
-import { AppointmentModal } from "./AppointmentModal";
 import { useDayViewScroll } from "@/hooks/useDayViewScroll";
 import { useBusinessStore } from "@/hooks/useBusinessStore";
 import { WeekHeader } from "./timeline/WeekHeader";
 import { TimelineContainer } from "./timeline/TimelineContainer";
 import { useTimelineState } from "@/hooks/useTimelineState";
-
-interface Appointment {
-  id: string;
-  title: string;
-  stylist: string;
-  time: string;
-  duration: string;
-  isWalkIn: boolean;
-  date: Date;
-  serviceId?: string;
-}
+import { useTimelineConfig } from "@/hooks/useTimelineConfig";
+import { TimelineModal } from "./timeline/TimelineModal";
+import { Appointment } from "@/types/appointment";
 
 interface TimelineViewProps {
   date: Date;
@@ -35,11 +26,13 @@ export const TimelineView = ({
   onAppointmentEdit,
   onAppointmentDelete,
 }: TimelineViewProps) => {
-  const hours = Array.from({ length: 12 }, (_, i) => i + 9);
-  const HOUR_HEIGHT = 100;
-  const START_HOUR = 9;
-  const PAGE_MARGIN_PERCENT = mode === 'day' ? 2.5 : 0.5;
-  const TIME_COLUMN_WIDTH = mode === 'week' ? 48 : 64;
+  const {
+    hours,
+    HOUR_HEIGHT,
+    START_HOUR,
+    PAGE_MARGIN_PERCENT,
+    TIME_COLUMN_WIDTH,
+  } = useTimelineConfig(mode);
   
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const { services = [] } = useBusinessStore();
@@ -120,14 +113,13 @@ export const TimelineView = ({
         />
       </div>
 
-      <AppointmentModal
-        onAppointmentCreate={handleAppointmentCreate}
-        currentDate={selectedDate}
-        trigger={<></>}
+      <TimelineModal
         isOpen={isModalOpen}
-        onOpenChange={setIsModalOpen}
-        defaultTime={selectedTime}
+        setIsModalOpen={setIsModalOpen}
+        selectedDate={selectedDate}
+        selectedTime={selectedTime}
         services={services}
+        onAppointmentCreate={handleAppointmentCreate}
       />
     </TimelineContainer>
   );
