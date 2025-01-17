@@ -21,7 +21,7 @@ interface Appointment {
   time: string;
   duration: string;
   isWalkIn: boolean;
-  date?: Date;
+  date: Date;
 }
 
 interface MonthViewProps {
