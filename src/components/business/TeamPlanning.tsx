@@ -15,6 +15,17 @@ interface TeamPlanningProps {
   onBusinessHoursChange: (hours: WeekSchedule) => void;
 }
 
+// Available colors for new employees
+const AVAILABLE_COLORS = [
+  '#8B5CF6', // Vivid Purple
+  '#D946EF', // Magenta Pink
+  '#F97316', // Bright Orange
+  '#0EA5E9', // Ocean Blue
+  '#9b87f5', // Primary Purple
+  '#7E69AB', // Secondary Purple
+  '#6E59A5', // Tertiary Purple
+];
+
 const createDefaultEmployeeSchedule = (businessHours: WeekSchedule) => {
   const schedule: { [key: string]: any } = {};
   Object.entries(businessHours).forEach(([day, hours]) => {
@@ -31,10 +42,21 @@ const createDefaultEmployeeSchedule = (businessHours: WeekSchedule) => {
 
 // Default employee with new color
 const defaultEmployee: Employee = {
-  id: "employee-1",
-  name: "Stylist 1",
-  color: EMPLOYEE_COLORS.SECONDARY, // This is #AA3FFF
+  id: "manager",
+  name: "Manager",
+  color: '#AA3FFF', // Updated default manager color
   schedule: {},
+};
+
+// Function to find the most different color from existing ones
+const findMostDifferentColor = (existingColors: string[], availableColors: string[]): string => {
+  if (availableColors.length === 0) return '#AA3FFF'; // Fallback color
+  
+  // Filter out colors that are already in use
+  const unusedColors = availableColors.filter(color => !existingColors.includes(color));
+  if (unusedColors.length === 0) return availableColors[0]; // If all colors are used, start over
+  
+  return unusedColors[Math.floor(Math.random() * unusedColors.length)];
 };
 
 export const TeamPlanning: React.FC<TeamPlanningProps> = ({
@@ -43,8 +65,7 @@ export const TeamPlanning: React.FC<TeamPlanningProps> = ({
 }) => {
   const { toast } = useToast();
   const { employees, updateEmployees } = useBusinessStore();
-  const [colorIndex, setColorIndex] = React.useState(1);
-  const [defaultEmployeeId, setDefaultEmployeeId] = React.useState<string>("employee-1");
+  const [defaultEmployeeId, setDefaultEmployeeId] = React.useState<string>("manager");
 
   React.useEffect(() => {
     if (employees.length === 0) {
@@ -57,22 +78,18 @@ export const TeamPlanning: React.FC<TeamPlanningProps> = ({
   }, []);
 
   const handleAddEmployee = () => {
-    const colors = [
-      EMPLOYEE_COLORS.SECONDARY,
-      EMPLOYEE_COLORS.TERTIARY,
-      EMPLOYEE_COLORS.QUATERNARY
-    ];
+    const existingColors = employees.map(emp => emp.color);
+    const newColor = findMostDifferentColor(existingColors, AVAILABLE_COLORS);
     
     const newEmployee: Employee = {
       id: `employee-${Date.now()}`,
       name: `Stylist ${employees.length + 1}`,
-      color: colors[colorIndex % colors.length],
+      color: newColor,
       schedule: createDefaultEmployeeSchedule(initialBusinessHours),
     };
     
     const updatedEmployees = [...employees, newEmployee];
     updateEmployees(updatedEmployees);
-    setColorIndex(prev => prev + 1);
     
     toast({
       title: "Employee added",
