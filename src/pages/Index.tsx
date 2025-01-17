@@ -7,11 +7,13 @@ import { MonthView } from "@/components/MonthView";
 import { fr } from "date-fns/locale";
 import { useBusinessStore } from "@/hooks/useBusinessStore";
 import { useAppointments } from "@/hooks/useAppointments";
+import { useTranslations } from "@/hooks/useTranslations";
 
 const Index = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [view, setView] = useState<"day" | "week" | "month">("day");
   const { services } = useBusinessStore();
+  const { t } = useTranslations();
   const { 
     appointments, 
     handleAppointmentCreate, 
@@ -25,7 +27,7 @@ const Index = () => {
         <div className="bg-white rounded-lg shadow animate-fade-in">
           <div className="flex justify-between items-center p-4 border-b">
             <h1 className="text-2xl font-bold bg-gradient-to-r from-salon-pink to-salon-peach bg-clip-text text-transparent">
-              Salon Calendar
+              {t('appointments.title')}
             </h1>
             <AppointmentModal 
               onAppointmentCreate={handleAppointmentCreate}

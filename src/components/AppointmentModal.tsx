@@ -7,6 +7,7 @@ import { useNotificationStore } from "@/stores/notificationStore";
 import { AvailableEmployeesProvider } from "./appointment/AvailableEmployeesProvider";
 import { ServiceType } from "@/types/service";
 import { AppointmentModalWrapper } from "./appointment/AppointmentModalWrapper";
+import { useTranslations } from "@/hooks/useTranslations";
 
 interface Appointment {
   id?: string;
@@ -46,6 +47,7 @@ export const AppointmentModal = ({
   const [internalIsOpen, setInternalIsOpen] = useState(false);
   const isOpen = controlledIsOpen ?? internalIsOpen;
   const onOpenChange = controlledOnOpenChange ?? setInternalIsOpen;
+  const { t } = useTranslations();
   
   const { formData, setFormData } = useAppointmentForm(currentDate, appointment, isOpen);
   const { handleSubmit, handleDelete } = useAppointmentModal({
@@ -73,7 +75,7 @@ export const AppointmentModal = ({
     handleSubmit(formData, appointment);
     addNotification({
       type: "business_hours",
-      message: `Appointment ${appointment ? 'updated' : 'created'} for ${formData.title}`,
+      message: `${t(appointment ? 'appointments.notifications.updated' : 'appointments.notifications.created')} for ${formData.title}`,
       appointmentId: appointment?.id || "new",
     });
   };
@@ -83,7 +85,7 @@ export const AppointmentModal = ({
       handleDelete(appointment.id);
       addNotification({
         type: "business_hours",
-        message: `Appointment deleted for ${appointment.title}`,
+        message: `${t('appointments.notifications.deleted')} for ${appointment.title}`,
         appointmentId: appointment.id,
       });
     }
@@ -93,7 +95,7 @@ export const AppointmentModal = ({
     <AppointmentModalWrapper
       isOpen={isOpen}
       onOpenChange={onOpenChange}
-      title={appointment ? "Edit Appointment" : "Schedule Appointment"}
+      title={t(appointment ? 'appointments.edit' : 'appointments.schedule')}
       trigger={trigger}
     >
       <AvailableEmployeesProvider
