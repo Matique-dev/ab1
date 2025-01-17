@@ -1,139 +1,69 @@
-# Salon Appointment System
+# Welcome to your Lovable project
 
-## Overview
-A modular appointment management system for salons, designed for easy integration with existing projects. The system provides comprehensive functionality for scheduling, managing, and tracking appointments with various service providers.
+## Project info
 
-## Core Features
-- Appointment scheduling and management
-- Service provider (stylist) management
-- Service catalog with customizable services
-- Business hours management
-- Walk-in appointment support
-- Theme support (light/dark)
-- Localization ready
+**URL**: https://lovable.dev/projects/19d4ba7f-ca14-445e-8437-3a2f904b8979
 
-## Component Structure
+## How can I edit this code?
 
-### Main Components
-- `AppointmentModal`: Main modal for creating/editing appointments
-- `AppointmentGrid`: Visual representation of daily appointments
-- `AppointmentCard`: Individual appointment display
-- `AppointmentFormFields`: Form fields for appointment data
+There are several ways of editing your application.
 
-### Utility Components
-- `DateTimeInputs`: Date and time selection
-- `ClientNameInput`: Client name input field
-- `ServiceSelect`: Service selection dropdown
-- `StylistSelect`: Stylist selection dropdown
-- `DurationSelect`: Duration selection
-- `WalkInCheckbox`: Walk-in toggle
+**Use Lovable**
 
-## State Management
-- Uses React Query for server state management
-- Local state for UI interactions
-- Business hours and employee schedules in store
-- Prepared for Supabase integration
+Simply visit the [Lovable Project](https://lovable.dev/projects/19d4ba7f-ca14-445e-8437-3a2f904b8979) and start prompting.
 
-## Data Types
+Changes made via Lovable will be committed automatically to this repo.
 
-### Key Interfaces
-- `Appointment`: Core appointment data
-- `Employee`: Stylist/employee information
-- `ServiceType`: Available services
-- `WeekSchedule`: Business hours structure
+**Use your preferred IDE**
 
-## Integration Requirements
+If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
 
-### Theme System
-- Components use Tailwind CSS
-- Support for light/dark themes
-- Customizable color schemes
+The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
 
-### Authentication
-Components are prepared for auth integration with:
-- Role-based access control
-- User context awareness
-- Supabase RLS policies
+Follow these steps:
 
-### Localization
-- Text strings prepared for translation system
-- Flexible label management
-- Date/time format localization
+```sh
+# Step 1: Clone the repository using the project's Git URL.
+git clone <YOUR_GIT_URL>
 
-### Backend Requirements
-Prepared for Supabase integration with:
-- Appointments table
-- Services table
-- Employee schedules
-- Business hours
-- Exception dates
+# Step 2: Navigate to the project directory.
+cd <YOUR_PROJECT_NAME>
 
-## Dependencies
-Core dependencies required:
-- @tanstack/react-query
-- date-fns
-- lucide-react
-- shadcn/ui components
+# Step 3: Install the necessary dependencies.
+npm i
+
+# Step 4: Start the development server with auto-reloading and an instant preview.
+npm run dev
+```
+
+**Edit a file directly in GitHub**
+
+- Navigate to the desired file(s).
+- Click the "Edit" button (pencil icon) at the top right of the file view.
+- Make your changes and commit the changes.
+
+**Use GitHub Codespaces**
+
+- Navigate to the main page of your repository.
+- Click on the "Code" button (green button) near the top right.
+- Select the "Codespaces" tab.
+- Click on "New codespace" to launch a new Codespace environment.
+- Edit files directly within the Codespace and commit and push your changes once you're done.
+
+## What technologies are used for this project?
+
+This project is built with .
+
+- Vite
+- TypeScript
+- React
+- shadcn-ui
 - Tailwind CSS
 
-## Getting Started
-1. Install required dependencies
-2. Set up authentication context
-3. Configure backend connection
-4. Implement localization
-5. Integrate with navigation system
+## How can I deploy this project?
 
-## Best Practices
-- Use TypeScript for type safety
-- Follow React Query patterns for data fetching
-- Implement proper error handling
-- Maintain accessibility standards
-- Use responsive design patterns
+Simply open [Lovable](https://lovable.dev/projects/19d4ba7f-ca14-445e-8437-3a2f904b8979) and click on Share -> Publish.
 
-## Migration Guide
-1. Set up required dependencies
-2. Copy component files maintaining structure
-3. Configure theme integration
-4. Set up localization
-5. Connect to authentication system
-6. Implement backend integration
-7. Add RLS policies
+## I want to use a custom domain - is that possible?
 
-## Backend Schema
-Required Supabase tables:
-\`\`\`sql
--- Appointments table
-create table appointments (
-  id uuid default uuid_generate_v4() primary key,
-  title text not null,
-  stylist_id uuid references auth.users(id),
-  service_id uuid references services(id),
-  start_time timestamptz not null,
-  duration interval not null,
-  is_walk_in boolean default false,
-  created_at timestamptz default now(),
-  updated_at timestamptz default now()
-);
-
--- Services table
-create table services (
-  id uuid default uuid_generate_v4() primary key,
-  name text not null,
-  duration interval not null,
-  price decimal(10,2) not null,
-  icon text,
-  created_at timestamptz default now(),
-  updated_at timestamptz default now()
-);
-
--- Business hours table
-create table business_hours (
-  id uuid default uuid_generate_v4() primary key,
-  day_of_week smallint not null,
-  is_open boolean default true,
-  open_time time not null,
-  close_time time not null,
-  created_at timestamptz default now(),
-  updated_at timestamptz default now()
-);
-\`\`\`
+We don't support custom domains (yet). If you want to deploy your project under your own domain then we recommend using Netlify. Visit our docs for more details: [Custom domains](https://docs.lovable.dev/tips-tricks/custom-domain/)
