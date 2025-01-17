@@ -1,18 +1,13 @@
 import React from "react";
-import { DndContext, DragEndEvent, closestCenter } from "@dnd-kit/core";
-import { SortableContext, verticalListSortingStrategy, arrayMove } from "@dnd-kit/sortable";
+import { arrayMove } from "@dnd-kit/sortable";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { EmployeeSchedule } from "./EmployeeSchedule";
 import { Employee, WeekSchedule } from "@/types/schedule";
 import { useToast } from "@/hooks/use-toast";
-import { Users, Plus } from "lucide-react";
+import { Users } from "lucide-react";
 import { useBusinessStore } from "@/hooks/useBusinessStore";
-
-interface TeamPlanningProps {
-  initialBusinessHours: WeekSchedule;
-  onBusinessHoursChange: (hours: WeekSchedule) => void;
-}
+import { EmployeeList } from "./employee/EmployeeList";
+import { EmployeeCreation } from "./employee/EmployeeCreation";
+import { DragEndEvent } from "@dnd-kit/core";
 
 // Available colors for new employees
 const AVAILABLE_COLORS = [
@@ -39,16 +34,17 @@ const createDefaultEmployeeSchedule = (businessHours: WeekSchedule) => {
   return schedule;
 };
 
-// Function to find the most different color from existing ones
 const findMostDifferentColor = (existingColors: string[], availableColors: string[]): string => {
-  if (availableColors.length === 0) return '#AA3FFF'; // Fallback color
-  
-  // Filter out colors that are already in use
+  if (availableColors.length === 0) return '#AA3FFF';
   const unusedColors = availableColors.filter(color => !existingColors.includes(color));
-  if (unusedColors.length === 0) return availableColors[0]; // If all colors are used, start over
-  
+  if (unusedColors.length === 0) return availableColors[0];
   return unusedColors[Math.floor(Math.random() * unusedColors.length)];
 };
+
+interface TeamPlanningProps {
+  initialBusinessHours: WeekSchedule;
+  onBusinessHoursChange: (hours: WeekSchedule) => void;
+}
 
 export const TeamPlanning: React.FC<TeamPlanningProps> = ({
   initialBusinessHours,
@@ -68,8 +64,7 @@ export const TeamPlanning: React.FC<TeamPlanningProps> = ({
       schedule: createDefaultEmployeeSchedule(initialBusinessHours),
     };
     
-    const updatedEmployees = [...employees, newEmployee];
-    updateEmployees(updatedEmployees);
+    updateEmployees([...employees, newEmployee]);
     
     toast({
       title: "Employee added",
@@ -129,25 +124,15 @@ export const TeamPlanning: React.FC<TeamPlanningProps> = ({
         </p>
       </CardHeader>
       <CardContent className="space-y-4">
-        <DndContext collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-          <SortableContext items={employees.map(emp => emp.id)} strategy={verticalListSortingStrategy}>
-            <div className="space-y-4">
-              {employees.map((employee) => (
-                <EmployeeSchedule
-                  key={employee.id}
-                  employee={employee}
-                  onRemove={() => handleRemoveEmployee(employee.id)}
-                  onUpdateSchedule={(schedule) => handleUpdateEmployeeSchedule(employee.id, schedule)}
-                  onUpdateEmployee={(updates) => handleUpdateEmployee(employee.id, updates)}
-                  businessHours={initialBusinessHours}
-                />
-              ))}
-            </div>
-          </SortableContext>
-        </DndContext>
-        <Button onClick={handleAddEmployee} className="w-auto">
-          <Plus className="mr-2 h-4 w-4" /> Add Employee
-        </Button>
+        <EmployeeList
+          employees={employees}
+          businessHours={initialBusinessHours}
+          onDragEnd={handleDragEnd}
+          onRemoveEmployee={handleRemoveEmployee}
+          onUpdateEmployeeSchedule={handleUpdateEmployeeSchedule}
+          onUpdateEmployee={handleUpdateEmployee}
+        />
+        <EmployeeCreation onAddEmployee={handleAddEmployee} />
       </CardContent>
     </Card>
   );
