@@ -3,6 +3,7 @@ import { AppointmentModalContent } from "./AppointmentModalContent";
 import { AvailableEmployeesProvider } from "./appointment/AvailableEmployeesProvider";
 import { ServiceType } from "@/types/service";
 import { AppointmentModalWrapper } from "./appointment/AppointmentModalWrapper";
+import { useState } from "react";
 
 interface Appointment {
   id?: string;
