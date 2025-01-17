@@ -33,25 +33,17 @@ export const AppointmentFormFields = ({
   const [selectedService, setSelectedService] = useState<ServiceType | undefined>();
   const [customDuration, setCustomDuration] = useState(false);
 
+  // Initialize selected service based on serviceId
   useEffect(() => {
-    if (services.length > 0) {
-      const service = formData.serviceId 
-        ? services.find(s => s.id === formData.serviceId) 
-        : services[0];
-        
+    if (services.length > 0 && formData.serviceId) {
+      const service = services.find(s => s.id === formData.serviceId);
       if (service) {
         setSelectedService(service);
-        
-        if (!formData.duration) {
-          setFormData({
-            ...formData,
-            duration: service.durationMinutes.toString()
-          });
-        }
       }
     }
   }, [services, formData.serviceId]);
 
+  // Set custom duration state based on duration value
   useEffect(() => {
     if (formData.duration) {
       const matchingService = services.find(
@@ -61,6 +53,7 @@ export const AppointmentFormFields = ({
     }
   }, [formData.duration, services]);
 
+  // Update form data when service changes
   useEffect(() => {
     if (selectedService && !customDuration) {
       setFormData({
