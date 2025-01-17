@@ -70,7 +70,23 @@ export const AppointmentModal = ({
       return;
     }
 
-    handleSubmit(formData, appointment);
+    // Create a Date object from the selected date and time
+    const [hours, minutes] = formData.time.split(':').map(Number);
+    const appointmentDate = new Date(formData.selectedDate);
+    appointmentDate.setHours(hours, minutes, 0, 0);
+
+    // Create the appointment data with the proper date field
+    const appointmentData = {
+      title: formData.title,
+      stylist: formData.stylist,
+      time: formData.time,
+      duration: formData.duration,
+      isWalkIn: formData.isWalkIn,
+      date: appointmentDate,
+      serviceId: formData.serviceId,
+    };
+
+    handleSubmit(appointmentData, appointment);
     addNotification({
       type: "business_hours",
       message: `Appointment ${appointment ? 'updated' : 'created'} for ${formData.title}`,
