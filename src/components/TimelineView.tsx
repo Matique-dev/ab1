@@ -1,4 +1,5 @@
 import { useRef } from "react";
+import { addDays } from "date-fns"; // Add this import
 import { TimeGrid } from "./TimeGrid";
 import { AppointmentGrid } from "./AppointmentGrid";
 import { AppointmentModal } from "./AppointmentModal";
