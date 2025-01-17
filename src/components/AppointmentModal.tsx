@@ -1,11 +1,3 @@
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
 import { useAppointmentForm } from "@/hooks/useAppointmentForm";
 import { useAppointmentModal } from "@/hooks/useAppointmentModal";
@@ -14,6 +6,7 @@ import { useAppointmentValidation } from "@/hooks/useAppointmentValidation";
 import { useNotificationStore } from "@/stores/notificationStore";
 import { AvailableEmployeesProvider } from "./appointment/AvailableEmployeesProvider";
 import { ServiceType } from "@/types/service";
+import { AppointmentModalWrapper } from "./appointment/AppointmentModalWrapper";
 
 interface Appointment {
   id?: string;
@@ -97,37 +90,28 @@ export const AppointmentModal = ({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogTrigger asChild>
-        {trigger || (
-          <Button className="bg-gradient-to-r from-salon-pink to-salon-peach hover:opacity-90">
-            New Appointment
-          </Button>
+    <AppointmentModalWrapper
+      isOpen={isOpen}
+      onOpenChange={onOpenChange}
+      title={appointment ? "Edit Appointment" : "Schedule Appointment"}
+      trigger={trigger}
+    >
+      <AvailableEmployeesProvider
+        currentDate={currentDate}
+        currentTime={formData.time}
+      >
+        {(availableEmployees) => (
+          <AppointmentModalContent
+            formData={formData}
+            setFormData={setFormData}
+            onSubmit={onSubmit}
+            onDelete={appointment ? onDelete : undefined}
+            appointment={appointment}
+            availableEmployees={availableEmployees}
+            services={services}
+          />
         )}
-      </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
-        <DialogHeader>
-          <DialogTitle>
-            {appointment ? "Edit Appointment" : "Schedule Appointment"}
-          </DialogTitle>
-        </DialogHeader>
-        <AvailableEmployeesProvider
-          currentDate={currentDate}
-          currentTime={formData.time}
-        >
-          {(availableEmployees) => (
-            <AppointmentModalContent
-              formData={formData}
-              setFormData={setFormData}
-              onSubmit={onSubmit}
-              onDelete={appointment ? onDelete : undefined}
-              appointment={appointment}
-              availableEmployees={availableEmployees}
-              services={services}
-            />
-          )}
-        </AvailableEmployeesProvider>
-      </DialogContent>
-    </Dialog>
+      </AvailableEmployeesProvider>
+    </AppointmentModalWrapper>
   );
 };
