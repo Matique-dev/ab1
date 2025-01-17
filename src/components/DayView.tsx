@@ -3,6 +3,7 @@ import { AppointmentGrid } from "./AppointmentGrid";
 import { useRef, useState } from "react";
 import { AppointmentModal } from "./AppointmentModal";
 import { useDayViewScroll } from "@/hooks/useDayViewScroll";
+import { useBusinessStore } from "@/hooks/useBusinessStore";
 
 interface Appointment {
   id: string;
@@ -35,6 +36,7 @@ export const DayView = ({
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedTime, setSelectedTime] = useState<string>("");
+  const { services = [] } = useBusinessStore();
 
   useDayViewScroll(scrollContainerRef, HOUR_HEIGHT);
 
@@ -91,6 +93,7 @@ export const DayView = ({
         isOpen={isModalOpen}
         onOpenChange={setIsModalOpen}
         defaultTime={selectedTime}
+        services={services}
       />
     </>
   );

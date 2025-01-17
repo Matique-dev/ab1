@@ -40,16 +40,13 @@ export const AppointmentGrid = ({
   const dayAppointments = appointments.filter(apt => isSameDay(apt.date, date));
   const columnInfo = calculateAppointmentColumns(dayAppointments);
   
-  // Get business configuration from the store
   const { employees = [], services = [] } = useBusinessStore();
 
-  // Get employee color from employees array
   const getEmployeeColor = (stylistId: string) => {
     const employee = employees.find(emp => emp.id === stylistId);
     return employee?.color || getStylistColor(stylistId);
   };
 
-  // Get service details for appointments
   const getServiceDetails = (serviceId?: string) => {
     if (!serviceId) return null;
     return services.find(service => service.id === serviceId);
@@ -76,6 +73,7 @@ export const AppointmentGrid = ({
             onAppointmentEdit={onAppointmentEdit}
             onAppointmentDelete={onAppointmentDelete}
             onAppointmentCreate={() => {}}
+            services={services}
             trigger={
               <AppointmentCard
                 appointment={apt}
