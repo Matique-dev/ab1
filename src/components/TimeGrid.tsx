@@ -9,16 +9,23 @@ interface TimeGridProps {
   hourHeight: number;
   mode?: 'day' | 'week';
   dates?: Date[];
+  timeColumnWidth: number;
 }
 
-export const TimeGrid = ({ hours, startHour, hourHeight, mode = 'day', dates = [] }: TimeGridProps) => {
+export const TimeGrid = ({ 
+  hours, 
+  startHour, 
+  hourHeight, 
+  mode = 'day', 
+  dates = [],
+  timeColumnWidth,
+}: TimeGridProps) => {
   const { businessHours, exceptionDates } = useBusinessStore();
 
   const isHourAvailable = (hour: number, date: Date) => {
     const time = `${hour.toString().padStart(2, '0')}:00`;
-    const duration = "60"; // We check availability for the full hour
+    const duration = "60";
 
-    // First check exception dates
     const exceptionCheck = isWithinExceptionHours(
       date,
       time,
@@ -26,12 +33,10 @@ export const TimeGrid = ({ hours, startHour, hourHeight, mode = 'day', dates = [
       exceptionDates
     );
 
-    // If there's an exception, use its result
     if (exceptionCheck.hasException) {
       return exceptionCheck.isValid;
     }
 
-    // Otherwise, check regular business hours
     const businessHoursCheck = isWithinBusinessHours(
       date,
       time,
@@ -44,97 +49,80 @@ export const TimeGrid = ({ hours, startHour, hourHeight, mode = 'day', dates = [
 
   return (
     <>
-      {/* Column headers for week view */}
-      {mode === 'week' && dates.length > 0 && (
-        <div className="sticky top-0 left-16 right-0 flex border-b border-gray-200 bg-white z-20 pt-4">
-          {dates.map((date, index) => (
-            <div
-              key={date.toString()}
-              className="flex-1 px-2 py-1 text-sm font-medium text-gray-600 text-center border-l first:border-l-0 border-gray-200"
-            >
-              {format(date, 'EEE d')}
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Time grid lines */}
-      <div className="absolute inset-0 z-0">
-        {mode === 'week' ? (
-          // Week view - create grid for each day
-          <div className="flex h-full">
-            {dates.map((date, dateIndex) => (
-              <div 
-                key={date.toString()} 
-                className="flex-1 relative"
-                style={{ width: `${100/7}%` }}
-              >
-                {hours.map((hour) => (
-                  <React.Fragment key={`${date}-${hour}`}>
-                    {/* Full hour line with non-business hours styling */}
-                    <div 
-                      className={`absolute w-full border-t border-gray-200 ${
-                        !isHourAvailable(hour, date) ? 
-                        'bg-[linear-gradient(135deg,transparent_46%,#e5e7eb_49%,#e5e7eb_51%,transparent_55%)] bg-[length:10px_10px]' : ''
-                      }`}
-                      style={{ 
-                        top: `${(hour - startHour) * hourHeight}px`,
-                        height: `${hourHeight}px`,
-                      }}
-                    />
-                    {/* Half hour line */}
-                    <div 
-                      className="absolute w-full border-t border-gray-200 opacity-50"
-                      style={{ 
-                        top: `${(hour - startHour) * hourHeight + hourHeight/2}px`,
-                      }}
-                    />
-                  </React.Fragment>
-                ))}
-              </div>
-            ))}
-          </div>
-        ) : (
-          // Day view - single column
-          <>
-            {hours.map((hour) => (
-              <React.Fragment key={hour}>
-                {/* Full hour line with non-business hours styling */}
-                <div 
-                  className={`absolute w-full border-t border-gray-200 ${
-                    !isHourAvailable(hour, dates[0]) ? 
-                    'bg-[linear-gradient(135deg,transparent_46%,#e5e7eb_49%,#e5e7eb_51%,transparent_55%)] bg-[length:10px_10px]' : ''
-                  }`}
-                  style={{ 
-                    top: `${(hour - startHour) * hourHeight}px`,
-                    height: `${hourHeight}px`
-                  }}
-                />
-                {/* Half hour line */}
-                <div 
-                  className="absolute w-full border-t border-gray-200 opacity-50"
-                  style={{ top: `${(hour - startHour) * hourHeight + hourHeight/2}px` }}
-                />
-              </React.Fragment>
-            ))}
-          </>
-        )}
-      </div>
-
-      {/* Time scale background */}
-      <div className="absolute top-0 left-0 w-16 h-full bg-white z-20" />
-      
-      {/* Time labels */}
-      <div className="absolute top-0 left-0 w-16 z-30">
+      {/* Time scale background and labels */}
+      <div 
+        className="sticky left-0 z-20 bg-white"
+        style={{ width: `${timeColumnWidth}px` }}
+      >
         {hours.map((hour) => (
           <div
             key={`label-${hour}`}
-            className="absolute -top-3 left-2 text-sm text-gray-500 bg-white pr-2"
-            style={{ top: `${(hour - startHour) * hourHeight}px` }}
+            className="relative"
+            style={{ height: `${hourHeight}px` }}
           >
-            {format(new Date().setHours(hour, 0, 0, 0), 'HH:00')}
+            <span className="absolute -top-3 left-2 text-sm text-gray-500">
+              {format(new Date().setHours(hour, 0, 0, 0), 'HH:00')}
+            </span>
           </div>
         ))}
+      </div>
+
+      {/* Grid lines */}
+      <div className="flex-1 relative">
+        <div className="absolute inset-0">
+          {mode === 'week' ? (
+            <div className="flex h-full">
+              {dates.map((date) => (
+                <div 
+                  key={date.toString()} 
+                  className="flex-1 relative border-l first:border-l-0 border-gray-200"
+                >
+                  {hours.map((hour) => (
+                    <React.Fragment key={`${date}-${hour}`}>
+                      <div 
+                        className={`absolute w-full border-t border-gray-200 ${
+                          !isHourAvailable(hour, date) ? 
+                          'bg-[linear-gradient(135deg,transparent_46%,#e5e7eb_49%,#e5e7eb_51%,transparent_55%)] bg-[length:10px_10px]' : ''
+                        }`}
+                        style={{ 
+                          top: `${(hour - startHour) * hourHeight}px`,
+                          height: `${hourHeight}px`,
+                        }}
+                      />
+                      <div 
+                        className="absolute w-full border-t border-gray-200 opacity-50"
+                        style={{ 
+                          top: `${(hour - startHour) * hourHeight + hourHeight/2}px`,
+                        }}
+                      />
+                    </React.Fragment>
+                  ))}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <>
+              {hours.map((hour) => (
+                <React.Fragment key={hour}>
+                  <div 
+                    className={`absolute w-full border-t border-gray-200 ${
+                      !isHourAvailable(hour, dates[0]) ? 
+                      'bg-[linear-gradient(135deg,transparent_46%,#e5e7eb_49%,#e5e7eb_51%,transparent_55%)] bg-[length:10px_10px]' : ''
+                    }`}
+                    style={{ 
+                      top: `${(hour - startHour) * hourHeight}px`,
+                      height: `${hourHeight}px`
+                    }}
+                  />
+                  <div 
+                    className="absolute w-full border-t border-gray-200 opacity-50"
+                    style={{ top: `${(hour - startHour) * hourHeight + hourHeight/2}px` }}
+                  />
+                </React.Fragment>
+              ))}
+            </>
+          )}
+        </div>
       </div>
     </>
   );

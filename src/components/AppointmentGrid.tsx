@@ -23,6 +23,7 @@ interface AppointmentGridProps {
   startHour: number;
   hourHeight: number;
   pageMarginPercent: number;
+  timeColumnWidth: number;
   onAppointmentEdit: (appointment: Appointment) => void;
   onAppointmentDelete: (appointmentId: string) => void;
 }
@@ -30,10 +31,10 @@ interface AppointmentGridProps {
 export const AppointmentGrid = ({
   dates,
   appointments,
-  hours,
   startHour,
   hourHeight,
   pageMarginPercent,
+  timeColumnWidth,
   onAppointmentEdit,
   onAppointmentDelete,
 }: AppointmentGridProps) => {
@@ -50,8 +51,11 @@ export const AppointmentGrid = ({
   };
 
   return (
-    <div className="relative ml-16 mr-4 h-full z-10 flex">
-      {dates.map((date, dateIndex) => {
+    <div 
+      className="absolute inset-0 z-10 flex"
+      style={{ marginLeft: `${timeColumnWidth}px` }}
+    >
+      {dates.map((date) => {
         const dayAppointments = appointments.filter(apt => isSameDay(apt.date, date));
         const columnInfo = calculateAppointmentColumns(dayAppointments);
         const columnWidth = 100 / dates.length;
