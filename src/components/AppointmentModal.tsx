@@ -3,10 +3,10 @@ import { useAppointmentForm } from "@/hooks/useAppointmentForm";
 import { useAppointmentModal } from "@/hooks/useAppointmentModal";
 import { AppointmentModalContent } from "./AppointmentModalContent";
 import { useAppointmentValidation } from "@/hooks/useAppointmentValidation";
-import { useNotificationStore } from "@/stores/notificationStore";
 import { AvailableEmployeesProvider } from "./appointment/AvailableEmployeesProvider";
 import { ServiceType } from "@/types/service";
 import { AppointmentModalWrapper } from "./appointment/AppointmentModalWrapper";
+import { useToast } from "@/components/ui/use-toast";
 
 interface Appointment {
   id?: string;
@@ -46,6 +46,7 @@ export const AppointmentModal = ({
   const [internalIsOpen, setInternalIsOpen] = useState(false);
   const isOpen = controlledIsOpen ?? internalIsOpen;
   const onOpenChange = controlledOnOpenChange ?? setInternalIsOpen;
+  const { toast } = useToast();
   
   const { formData, setFormData } = useAppointmentForm(currentDate, appointment, isOpen);
   const { handleSubmit, handleDelete } = useAppointmentModal({
@@ -55,7 +56,6 @@ export const AppointmentModal = ({
     onOpenChange,
   });
   const { validateAppointment } = useAppointmentValidation();
-  const { addNotification } = useNotificationStore();
 
   useEffect(() => {
     if (isOpen && defaultTime) {
@@ -71,20 +71,18 @@ export const AppointmentModal = ({
     }
 
     handleSubmit(formData, appointment);
-    addNotification({
-      type: "business_hours",
-      message: `Appointment ${appointment ? 'updated' : 'created'} for ${formData.title}`,
-      appointmentId: appointment?.id || "new",
+    toast({
+      title: appointment ? "Appointment Updated" : "Appointment Created",
+      description: `Appointment ${appointment ? 'updated' : 'created'} for ${formData.title}`,
     });
   };
 
   const onDelete = () => {
     if (appointment?.id) {
       handleDelete(appointment.id);
-      addNotification({
-        type: "business_hours",
-        message: `Appointment deleted for ${appointment.title}`,
-        appointmentId: appointment.id,
+      toast({
+        title: "Appointment Deleted",
+        description: `Appointment deleted for ${appointment.title}`,
       });
     }
   };

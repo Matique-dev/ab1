@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { useNotificationStore } from "@/stores/notificationStore";
 import { useBusinessStore } from "@/hooks/useBusinessStore";
 import { 
   isWithinBusinessHours, 
@@ -22,7 +21,6 @@ interface Appointment {
 export const useAppointments = () => {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const { toast } = useToast();
-  const { addNotification } = useNotificationStore();
   const { businessHours, exceptionDates, employees } = useBusinessStore();
 
   const validateAppointment = (appointment: Omit<Appointment, "id">) => {
@@ -66,10 +64,10 @@ export const useAppointments = () => {
           employee
         );
         if (!availabilityCheck.isValid) {
-          addNotification({
-            type: "employee_availability",
-            message: availabilityCheck.message || "Employee is not available at this time",
-            appointmentId: "new",
+          toast({
+            title: "Stylist Unavailable",
+            description: availabilityCheck.message || "Employee is not available at this time",
+            variant: "destructive",
           });
           return false;
         }
