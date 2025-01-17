@@ -80,7 +80,7 @@ export const calculateAppointmentPosition = (
   const startMinutes = getTimeInMinutes(appointment.time);
   const duration = parseInt(appointment.duration);
 
-  // Calculate vertical position without header offset
+  // Calculate vertical position relative to the start hour
   const topPosition = ((startMinutes - startHour * 60) / 60) * hourHeight;
   const height = (duration / 60) * hourHeight;
 
@@ -114,8 +114,9 @@ export const calculateAppointmentPosition = (
     console.log(`Day View - Width: ${width}, Left: ${left}, Top: ${topPosition}`);
   } else {
     // Week view: fixed width per day column
-    const columnWidth = (100 - pageMarginPercent * 2) / 7;
-    const leftPosition = columnInfo.columns[appointment.id] * columnWidth + pageMarginPercent;
+    const dayWidth = (100 - pageMarginPercent * 2) / 7;
+    const columnWidth = maxColumnCount > 1 ? dayWidth / maxColumnCount : dayWidth;
+    const leftPosition = (columnInfo.columns[appointment.id] % 7) * dayWidth + pageMarginPercent;
     
     width = `${columnWidth}%`;
     left = `${leftPosition}%`;
