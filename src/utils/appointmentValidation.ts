@@ -157,8 +157,9 @@ export const hasSchedulingConflicts = (
   currentAppointmentId?: string
 ): ValidationResult => {
   const [appointmentHour, appointmentMinute] = time.split(':').map(Number);
-  const appointmentStart = new Date(date).setHours(appointmentHour, appointmentMinute);
-  const appointmentEnd = addMinutes(new Date(appointmentStart), parseInt(duration));
+  const appointmentDate = new Date(date);
+  appointmentDate.setHours(appointmentHour, appointmentMinute, 0, 0);
+  const appointmentEnd = addMinutes(appointmentDate, parseInt(duration));
 
   const conflict = appointments.find(apt => {
     if (apt.id === currentAppointmentId) return false;
@@ -166,13 +167,14 @@ export const hasSchedulingConflicts = (
     if (format(apt.date, 'yyyy-MM-dd') !== format(date, 'yyyy-MM-dd')) return false;
 
     const [existingHour, existingMinute] = apt.time.split(':').map(Number);
-    const existingStart = new Date(apt.date).setHours(existingHour, existingMinute);
-    const existingEnd = addMinutes(new Date(existingStart), parseInt(apt.duration));
+    const existingDate = new Date(apt.date);
+    existingDate.setHours(existingHour, existingMinute, 0, 0);
+    const existingEnd = addMinutes(existingDate, parseInt(apt.duration));
 
     return (
-      (appointmentStart >= existingStart && appointmentStart < existingEnd) ||
-      (appointmentEnd > existingStart && appointmentEnd <= existingEnd) ||
-      (appointmentStart <= existingStart && appointmentEnd >= existingEnd)
+      (isBefore(appointmentDate, existingEnd) && isAfter(appointmentDate, existingDate)) ||
+      (isBefore(appointmentEnd, existingEnd) && isAfter(appointmentEnd, existingDate)) ||
+      (isBefore(appointmentDate, existingDate) && isAfter(appointmentEnd, existingEnd))
     );
   });
 

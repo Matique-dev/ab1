@@ -10,10 +10,17 @@ import { useState, useEffect } from "react";
 import { useAppointmentForm } from "@/hooks/useAppointmentForm";
 import { useAppointmentModal } from "@/hooks/useAppointmentModal";
 import { AppointmentModalContent } from "./AppointmentModalContent";
-import { Employee } from "@/types/schedule";
 import { format } from "date-fns";
 import { isWithinBusinessHours } from "@/utils/timeUtils";
 import { useBusinessStore } from "@/hooks/useBusinessStore";
+import { useToast } from "@/hooks/use-toast";
+import { useNotificationStore } from "@/stores/notificationStore";
+import {
+  isWithinBusinessHours as validateBusinessHours,
+  isWithinExceptionHours,
+  isEmployeeAvailable,
+  hasSchedulingConflicts
+} from "@/utils/appointmentValidation";
 
 interface Appointment {
   id?: string;
@@ -51,6 +58,8 @@ export const AppointmentModal = ({
   const [internalIsOpen, setInternalIsOpen] = useState(false);
   const isOpen = controlledIsOpen ?? internalIsOpen;
   const onOpenChange = controlledOnOpenChange ?? setInternalIsOpen;
+  const { toast } = useToast();
+  const { addNotification } = useNotificationStore();
   
   const { formData, setFormData } = useAppointmentForm(currentDate, appointment, isOpen);
   const { handleSubmit, handleDelete } = useAppointmentModal({
@@ -60,7 +69,6 @@ export const AppointmentModal = ({
     onOpenChange,
   });
 
-  // Get all business configuration from the store
   const { 
     employees = [], 
     services = [], 
@@ -74,7 +82,81 @@ export const AppointmentModal = ({
     }
   }, [isOpen, defaultTime, setFormData]);
 
-  // Get available employees for the selected time slot
+  const validateAppointment = () => {
+    const appointmentDate = new Date(formData.selectedDate);
+    
+    // Check business hours
+    const businessHoursCheck = validateBusinessHours(
+      appointmentDate,
+      formData.time,
+      formData.duration,
+      businessHours
+    );
+    if (!businessHoursCheck.isValid) {
+      toast({
+        title: "Invalid Time",
+        description: businessHoursCheck.message,
+        variant: "destructive",
+      });
+      return false;
+    }
+
+    // Check exception dates
+    const exceptionCheck = isWithinExceptionHours(
+      appointmentDate,
+      formData.time,
+      formData.duration,
+      exceptionDates
+    );
+    if (!exceptionCheck.isValid) {
+      toast({
+        title: "Invalid Date",
+        description: exceptionCheck.message,
+        variant: "destructive",
+      });
+      return false;
+    }
+
+    // Check employee availability if specific stylist selected
+    if (formData.stylist !== "anyone") {
+      const employee = employees.find(emp => emp.id === formData.stylist);
+      if (employee) {
+        const availabilityCheck = isEmployeeAvailable(
+          appointmentDate,
+          formData.time,
+          formData.duration,
+          employee
+        );
+        if (!availabilityCheck.isValid) {
+          toast({
+            title: "Stylist Unavailable",
+            description: availabilityCheck.message,
+            variant: "destructive",
+          });
+          return false;
+        }
+      }
+    }
+
+    return true;
+  };
+
+  const onSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!validateAppointment()) {
+      return;
+    }
+
+    // Create appointment and add notification
+    handleSubmit(formData, appointment);
+    addNotification({
+      type: "business_hours",
+      message: `Appointment ${appointment ? 'updated' : 'created'} for ${formData.title}`,
+      appointmentId: appointment?.id || "new",
+    });
+  };
+
   const getAvailableEmployees = () => {
     const dayOfWeek = format(currentDate, 'EEEE').toLowerCase();
     const currentTime = formData.time;
@@ -108,14 +190,14 @@ export const AppointmentModal = ({
 
   const availableEmployees = getAvailableEmployees();
 
-  const onSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    handleSubmit(formData, appointment);
-  };
-
   const onDelete = () => {
     if (appointment?.id) {
       handleDelete(appointment.id);
+      addNotification({
+        type: "business_hours",
+        message: `Appointment deleted for ${appointment.title}`,
+        appointmentId: appointment.id,
+      });
     }
   };
 
