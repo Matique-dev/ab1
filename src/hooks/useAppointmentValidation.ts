@@ -1,69 +1,74 @@
 import { useToast } from "@/hooks/use-toast";
 import { useBusinessStore } from "@/hooks/useBusinessStore";
-import { 
-  isWithinBusinessHours, 
-  isWithinExceptionHours, 
-  isEmployeeAvailable 
+import { format } from "date-fns";
+import {
+  isWithinBusinessHours,
+  isWithinExceptionHours,
+  isEmployeeAvailable,
 } from "@/utils/appointmentValidation";
 
-interface Appointment {
-  id?: string;
-  title: string;
-  stylist: string;
-  time: string;
-  duration: string;
-  isWalkIn: boolean;
-  date: Date;
-  serviceId?: string;
+interface ValidationResult {
+  isValid: boolean;
+  message?: string;
 }
 
 export const useAppointmentValidation = () => {
   const { toast } = useToast();
-  const { businessHours, exceptionDates, employees } = useBusinessStore();
+  const { employees, businessHours, exceptionDates } = useBusinessStore();
 
-  const validateAppointment = (appointment: Omit<Appointment, "id">) => {
+  const validateAppointment = (formData: {
+    selectedDate: string;
+    time: string;
+    duration: string;
+    stylist: string;
+  }): boolean => {
+    const appointmentDate = new Date(formData.selectedDate);
+    
+    // Check business hours
     const businessHoursCheck = isWithinBusinessHours(
-      appointment.date,
-      appointment.time,
-      appointment.duration,
+      appointmentDate,
+      formData.time,
+      formData.duration,
       businessHours
     );
     if (!businessHoursCheck.isValid) {
       toast({
-        title: "Invalid appointment time",
+        title: "Invalid Time",
         description: businessHoursCheck.message,
         variant: "destructive",
       });
       return false;
     }
 
+    // Check exception dates
     const exceptionCheck = isWithinExceptionHours(
-      appointment.date,
-      appointment.time,
-      appointment.duration,
+      appointmentDate,
+      formData.time,
+      formData.duration,
       exceptionDates
     );
     if (!exceptionCheck.isValid) {
       toast({
-        title: "Invalid appointment date",
+        title: "Invalid Date",
         description: exceptionCheck.message,
         variant: "destructive",
       });
       return false;
     }
 
-    if (appointment.stylist !== "anyone") {
-      const employee = employees.find(emp => emp.id === appointment.stylist);
+    // Check employee availability if specific stylist selected
+    if (formData.stylist !== "anyone") {
+      const employee = employees.find(emp => emp.id === formData.stylist);
       if (employee) {
         const availabilityCheck = isEmployeeAvailable(
-          appointment.date,
-          appointment.time,
-          appointment.duration,
+          appointmentDate,
+          formData.time,
+          formData.duration,
           employee
         );
         if (!availabilityCheck.isValid) {
           toast({
-            title: "Stylist unavailable",
+            title: "Stylist Unavailable",
             description: availabilityCheck.message,
             variant: "destructive",
           });

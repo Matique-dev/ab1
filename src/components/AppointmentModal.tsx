@@ -16,7 +16,6 @@ interface Appointment {
   duration: string;
   isWalkIn: boolean;
   date: Date;
-  serviceId?: string;
 }
 
 interface AppointmentModalProps {
@@ -67,27 +66,11 @@ export const AppointmentModal = ({
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Create a Date object from the selected date and time
-    const [hours, minutes] = formData.time.split(':').map(Number);
-    const appointmentDate = new Date(formData.selectedDate);
-    appointmentDate.setHours(hours, minutes, 0, 0);
-
-    // Create the appointment data with the proper date field
-    const appointmentData = {
-      title: formData.title,
-      stylist: formData.stylist,
-      time: formData.time,
-      duration: formData.duration,
-      isWalkIn: formData.isWalkIn,
-      date: appointmentDate,
-      serviceId: formData.serviceId,
-    };
-
-    if (!validateAppointment(appointmentData)) {
+    if (!validateAppointment(formData)) {
       return;
     }
 
-    handleSubmit(appointmentData, appointment);
+    handleSubmit(formData, appointment);
     addNotification({
       type: "business_hours",
       message: `Appointment ${appointment ? 'updated' : 'created'} for ${formData.title}`,
