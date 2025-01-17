@@ -1,10 +1,10 @@
-import { TimeGrid } from "./TimeGrid";
-import { AppointmentGrid } from "./AppointmentGrid";
-import { useRef, useState } from "react";
+import { useState } from "react";
+import { addDays, startOfWeek } from "date-fns";
 import { AppointmentModal } from "./AppointmentModal";
-import { useDayViewScroll } from "@/hooks/useDayViewScroll";
 import { useBusinessStore } from "@/hooks/useBusinessStore";
-import { addDays, startOfWeek, format } from "date-fns";
+import { TimelineContainer } from "./timeline/TimelineContainer";
+import { TimelineContent } from "./timeline/TimelineContent";
+import { WeekViewHeader } from "./timeline/WeekViewHeader";
 
 interface Appointment {
   id: string;
@@ -32,24 +32,19 @@ export const TimelineView = ({
   onAppointmentEdit,
   onAppointmentDelete,
 }: TimelineViewProps) => {
-  const hours = Array.from({ length: 12 }, (_, i) => i + 9); // 9 AM to 8 PM
+  const hours = Array.from({ length: 12 }, (_, i) => i + 9);
   const HOUR_HEIGHT = 100;
   const START_HOUR = 9;
   const PAGE_MARGIN_PERCENT = mode === 'day' ? 2.5 : 0.5;
-  const TIME_COLUMN_WIDTH = mode === 'week' ? 48 : 64; // px
+  const TIME_COLUMN_WIDTH = mode === 'week' ? 48 : 64;
   
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedTime, setSelectedTime] = useState<string>("");
   const [selectedDate, setSelectedDate] = useState(date);
   const { services = [] } = useBusinessStore();
 
-  useDayViewScroll(scrollContainerRef, HOUR_HEIGHT);
-
   const handleDoubleClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    const container = scrollContainerRef.current;
-    if (!container) return;
-
+    const container = e.currentTarget;
     const rect = container.getBoundingClientRect();
     const relativeY = e.clientY - rect.top + container.scrollTop;
     const totalMinutes = (relativeY / HOUR_HEIGHT) * 60;
@@ -85,51 +80,23 @@ export const TimelineView = ({
 
   return (
     <>
-      <div 
-        ref={scrollContainerRef}
-        className="flex flex-col h-[calc(100vh-12rem)] overflow-y-auto relative scroll-smooth"
-        onDoubleClick={handleDoubleClick}
-      >
-        {/* Week view header */}
+      <TimelineContainer hourHeight={HOUR_HEIGHT} onDoubleClick={handleDoubleClick}>
         {mode === 'week' && (
-          <div 
-            className="sticky top-0 z-20 flex bg-white border-b border-gray-200"
-            style={{ marginLeft: `${TIME_COLUMN_WIDTH}px` }}
-          >
-            {dates.map((date) => (
-              <div
-                key={date.toString()}
-                className="flex-1 px-2 py-3 text-sm font-medium text-gray-600 text-center border-l first:border-l-0 border-gray-200"
-              >
-                {format(date, 'EEE d')}
-              </div>
-            ))}
-          </div>
+          <WeekViewHeader date={date} timeColumnWidth={TIME_COLUMN_WIDTH} />
         )}
-
-        {/* Main grid container */}
-        <div className="relative flex flex-1">
-          <TimeGrid 
-            hours={hours}
-            startHour={START_HOUR}
-            hourHeight={HOUR_HEIGHT}
-            mode={mode}
-            dates={dates}
-            timeColumnWidth={TIME_COLUMN_WIDTH}
-          />
-          <AppointmentGrid
-            dates={dates}
-            appointments={appointments}
-            hours={hours}
-            startHour={START_HOUR}
-            hourHeight={HOUR_HEIGHT}
-            pageMarginPercent={PAGE_MARGIN_PERCENT}
-            timeColumnWidth={TIME_COLUMN_WIDTH}
-            onAppointmentEdit={onAppointmentEdit}
-            onAppointmentDelete={onAppointmentDelete}
-          />
-        </div>
-      </div>
+        <TimelineContent
+          dates={dates}
+          appointments={appointments}
+          hours={hours}
+          startHour={START_HOUR}
+          hourHeight={HOUR_HEIGHT}
+          pageMarginPercent={PAGE_MARGIN_PERCENT}
+          timeColumnWidth={TIME_COLUMN_WIDTH}
+          mode={mode}
+          onAppointmentEdit={onAppointmentEdit}
+          onAppointmentDelete={onAppointmentDelete}
+        />
+      </TimelineContainer>
 
       <AppointmentModal
         onAppointmentCreate={handleAppointmentCreate}
