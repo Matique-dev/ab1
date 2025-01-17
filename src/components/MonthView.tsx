@@ -11,6 +11,8 @@ import {
 } from "date-fns";
 import { fr } from "date-fns/locale";
 import { useBusinessStore } from "@/hooks/useBusinessStore";
+import { AppointmentModal } from "@/components/AppointmentModal";
+import { useState } from "react";
 
 interface Appointment {
   id: string;
@@ -25,14 +27,20 @@ interface Appointment {
 interface MonthViewProps {
   date: Date;
   appointments: Appointment[];
+  onAppointmentEdit?: (appointment: Appointment) => void;
+  onAppointmentDelete?: (appointmentId: string) => void;
 }
 
-export const MonthView = ({ date, appointments }: MonthViewProps) => {
+export const MonthView = ({ date, appointments, onAppointmentEdit, onAppointmentDelete }: MonthViewProps) => {
+  const [selectedAppointment, setSelectedAppointment] = useState<Appointment | undefined>();
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  
   const monthStart = startOfMonth(date);
   const monthEnd = endOfMonth(date);
   const calendarStart = startOfWeek(monthStart, { locale: fr, weekStartsOn: 1 });
   const calendarEnd = endOfWeek(monthEnd, { locale: fr, weekStartsOn: 1 });
-  const { businessHours } = useBusinessStore();
+  const { businessHours, services } = useBusinessStore();
 
   const days = eachDayOfInterval({ start: calendarStart, end: calendarEnd });
 
@@ -63,6 +71,19 @@ export const MonthView = ({ date, appointments }: MonthViewProps) => {
     return businessHours[dayOfWeek]?.isOpen;
   };
 
+  const handleDayClick = (day: Date) => {
+    setSelectedAppointment(undefined);
+    setSelectedDate(day);
+    setIsModalOpen(true);
+  };
+
+  const handleAppointmentClick = (e: React.MouseEvent, appointment: Appointment) => {
+    e.stopPropagation(); // Prevent triggering the day click
+    setSelectedAppointment(appointment);
+    setSelectedDate(null);
+    setIsModalOpen(true);
+  };
+
   // Generate diagonal pattern style for non-business days
   const nonBusinessDayStyle = {
     backgroundImage: `repeating-linear-gradient(
@@ -76,59 +97,70 @@ export const MonthView = ({ date, appointments }: MonthViewProps) => {
 
   // Function to get employee color with opacity
   const getEmployeeColor = (stylist: string) => {
-    // You can expand this with more colors or integrate with your employee management system
     const colors: { [key: string]: string } = {
       default: '#6557FF',
-      // Add more stylist-color mappings as needed
     };
     const baseColor = colors[stylist] || colors.default;
     return {
-      backgroundColor: `${baseColor}66`, // 40% opacity
-      borderLeft: `2px solid ${baseColor}`, // 100% opacity line
+      backgroundColor: `${baseColor}66`,
+      borderLeft: `2px solid ${baseColor}`,
     };
   };
 
   return (
-    <div className="grid grid-cols-7 gap-1 p-4">
-      {["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"].map((day) => (
-        <div key={day} className="text-center font-medium py-2">
-          {day}
-        </div>
-      ))}
-      {days.map((day) => {
-        const dayAppointments = getAppointmentsForDay(day);
-        const isBusinessDayValue = isBusinessDay(day);
-
-        return (
-          <div
-            key={day.toString()}
-            className={`min-h-[100px] border p-2 ${
-              isSameMonth(day, date) 
-                ? "bg-white" 
-                : "bg-gray-50 text-gray-400"
-            }`}
-            style={!isBusinessDayValue ? nonBusinessDayStyle : undefined}
-          >
-            <div className="text-right">{format(day, "d")}</div>
-            <div className="space-y-1">
-              {dayAppointments.slice(0, 2).map((apt) => (
-                <div
-                  key={apt.id}
-                  className="p-1 rounded text-xs truncate"
-                  style={getEmployeeColor(apt.stylist)}
-                >
-                  {apt.time} - {apt.title}
-                </div>
-              ))}
-              {dayAppointments.length > 2 && (
-                <div className="text-xs text-gray-500">
-                  +{dayAppointments.length - 2} more
-                </div>
-              )}
-            </div>
+    <>
+      <div className="grid grid-cols-7 gap-1 p-4">
+        {["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"].map((day) => (
+          <div key={day} className="text-center font-medium py-2">
+            {day}
           </div>
-        );
-      })}
-    </div>
+        ))}
+        {days.map((day) => {
+          const dayAppointments = getAppointmentsForDay(day);
+          const isBusinessDayValue = isBusinessDay(day);
+
+          return (
+            <div
+              key={day.toString()}
+              className={`min-h-[100px] border p-2 cursor-pointer hover:bg-gray-50 transition-colors ${
+                isSameMonth(day, date) 
+                  ? "bg-white" 
+                  : "bg-gray-50 text-gray-400"
+              }`}
+              style={!isBusinessDayValue ? nonBusinessDayStyle : undefined}
+              onClick={() => handleDayClick(day)}
+            >
+              <div className="text-right">{format(day, "d")}</div>
+              <div className="space-y-1">
+                {dayAppointments.slice(0, 2).map((apt) => (
+                  <div
+                    key={apt.id}
+                    className="p-1 rounded text-xs truncate hover:opacity-80 transition-opacity"
+                    style={getEmployeeColor(apt.stylist)}
+                    onClick={(e) => handleAppointmentClick(e, apt)}
+                  >
+                    {apt.time} - {apt.title}
+                  </div>
+                ))}
+                {dayAppointments.length > 2 && (
+                  <div className="text-xs text-gray-500">
+                    +{dayAppointments.length - 2} more
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      <AppointmentModal
+        isOpen={isModalOpen}
+        onOpenChange={setIsModalOpen}
+        currentDate={selectedDate || date}
+        appointment={selectedAppointment}
+        onAppointmentEdit={onAppointmentEdit}
+        onAppointmentDelete={onAppointmentDelete}
+        services={services}
+      />
+    </>
   );
 };
