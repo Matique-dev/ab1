@@ -1,10 +1,12 @@
+import { useRef } from "react";
 import { TimeGrid } from "./TimeGrid";
 import { AppointmentGrid } from "./AppointmentGrid";
-import { useRef, useState } from "react";
 import { AppointmentModal } from "./AppointmentModal";
 import { useDayViewScroll } from "@/hooks/useDayViewScroll";
 import { useBusinessStore } from "@/hooks/useBusinessStore";
-import { addDays, startOfWeek, format } from "date-fns";
+import { WeekHeader } from "./timeline/WeekHeader";
+import { TimelineContainer } from "./timeline/TimelineContainer";
+import { useTimelineState } from "@/hooks/useTimelineState";
 
 interface Appointment {
   id: string;
@@ -32,17 +34,23 @@ export const TimelineView = ({
   onAppointmentEdit,
   onAppointmentDelete,
 }: TimelineViewProps) => {
-  const hours = Array.from({ length: 12 }, (_, i) => i + 9); // 9 AM to 8 PM
+  const hours = Array.from({ length: 12 }, (_, i) => i + 9);
   const HOUR_HEIGHT = 100;
   const START_HOUR = 9;
   const PAGE_MARGIN_PERCENT = mode === 'day' ? 2.5 : 0.5;
-  const TIME_COLUMN_WIDTH = mode === 'week' ? 48 : 64; // px
+  const TIME_COLUMN_WIDTH = mode === 'week' ? 48 : 64;
   
   const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedTime, setSelectedTime] = useState<string>("");
-  const [selectedDate, setSelectedDate] = useState(date);
   const { services = [] } = useBusinessStore();
+  const {
+    isModalOpen,
+    setIsModalOpen,
+    selectedTime,
+    setSelectedTime,
+    selectedDate,
+    setSelectedDate,
+    getDatesForView
+  } = useTimelineState(date);
 
   useDayViewScroll(scrollContainerRef, HOUR_HEIGHT);
 
@@ -61,7 +69,7 @@ export const TimelineView = ({
       const mainContentWidth = container.clientWidth - TIME_COLUMN_WIDTH;
       const columnWidth = mainContentWidth / 7;
       const columnIndex = Math.floor((e.clientX - rect.left - TIME_COLUMN_WIDTH) / columnWidth);
-      const weekStart = startOfWeek(date, { weekStartsOn: 1 });
+      const weekStart = getDatesForView(date, 'week')[0];
       setSelectedDate(addDays(weekStart, columnIndex));
     } else {
       setSelectedDate(date);
@@ -79,56 +87,35 @@ export const TimelineView = ({
     onAppointmentEdit(newAppointment as Appointment);
   };
 
-  const dates = mode === 'week' 
-    ? Array.from({ length: 7 }, (_, i) => addDays(startOfWeek(date, { weekStartsOn: 1 }), i))
-    : [date];
+  const dates = getDatesForView(date, mode);
 
   return (
-    <>
-      <div 
-        ref={scrollContainerRef}
-        className="flex flex-col h-[calc(100vh-12rem)] overflow-y-auto relative scroll-smooth"
-        onDoubleClick={handleDoubleClick}
-      >
-        {/* Week view header */}
-        {mode === 'week' && (
-          <div 
-            className="sticky top-0 z-20 flex bg-white border-b border-gray-200"
-            style={{ marginLeft: `${TIME_COLUMN_WIDTH}px` }}
-          >
-            {dates.map((date) => (
-              <div
-                key={date.toString()}
-                className="flex-1 px-2 py-3 text-sm font-medium text-gray-600 text-center border-l first:border-l-0 border-gray-200"
-              >
-                {format(date, 'EEE d')}
-              </div>
-            ))}
-          </div>
-        )}
+    <TimelineContainer
+      scrollRef={scrollContainerRef}
+      onDoubleClick={handleDoubleClick}
+    >
+      {mode === 'week' && <WeekHeader dates={dates} timeColumnWidth={TIME_COLUMN_WIDTH} />}
 
-        {/* Main grid container */}
-        <div className="relative flex flex-1">
-          <TimeGrid 
-            hours={hours}
-            startHour={START_HOUR}
-            hourHeight={HOUR_HEIGHT}
-            mode={mode}
-            dates={dates}
-            timeColumnWidth={TIME_COLUMN_WIDTH}
-          />
-          <AppointmentGrid
-            dates={dates}
-            appointments={appointments}
-            hours={hours}
-            startHour={START_HOUR}
-            hourHeight={HOUR_HEIGHT}
-            pageMarginPercent={PAGE_MARGIN_PERCENT}
-            timeColumnWidth={TIME_COLUMN_WIDTH}
-            onAppointmentEdit={onAppointmentEdit}
-            onAppointmentDelete={onAppointmentDelete}
-          />
-        </div>
+      <div className="relative flex flex-1">
+        <TimeGrid 
+          hours={hours}
+          startHour={START_HOUR}
+          hourHeight={HOUR_HEIGHT}
+          mode={mode}
+          dates={dates}
+          timeColumnWidth={TIME_COLUMN_WIDTH}
+        />
+        <AppointmentGrid
+          dates={dates}
+          appointments={appointments}
+          hours={hours}
+          startHour={START_HOUR}
+          hourHeight={HOUR_HEIGHT}
+          pageMarginPercent={PAGE_MARGIN_PERCENT}
+          timeColumnWidth={TIME_COLUMN_WIDTH}
+          onAppointmentEdit={onAppointmentEdit}
+          onAppointmentDelete={onAppointmentDelete}
+        />
       </div>
 
       <AppointmentModal
@@ -140,6 +127,6 @@ export const TimelineView = ({
         defaultTime={selectedTime}
         services={services}
       />
-    </>
+    </TimelineContainer>
   );
 };
