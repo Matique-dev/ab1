@@ -1,25 +1,10 @@
-import { isSameDay } from "date-fns";
-import { AppointmentCard } from "./AppointmentCard";
-import { AppointmentModal } from "./AppointmentModal";
-import { calculateAppointmentColumns, calculateAppointmentPosition } from "./AppointmentColumns";
-import { getStylistColor } from "@/utils/appointmentCalculations";
-import { useBusinessStore } from "@/hooks/useBusinessStore";
-
-interface Appointment {
-  id: string;
-  title: string;
-  stylist: string;
-  time: string;
-  duration: string;
-  isWalkIn: boolean;
-  date: Date;
-  serviceId?: string;
-}
+import { calculateAppointmentColumns } from "./AppointmentColumns";
+import { AppointmentGridColumn } from "./appointment/AppointmentGridColumn";
+import { Appointment } from "@/types/appointment";
 
 interface AppointmentGridProps {
   dates: Date[];
   appointments: Appointment[];
-  hours: number[];
   startHour: number;
   hourHeight: number;
   pageMarginPercent: number;
@@ -38,25 +23,13 @@ export const AppointmentGrid = ({
   onAppointmentEdit,
   onAppointmentDelete,
 }: AppointmentGridProps) => {
-  const { employees = [], services = [] } = useBusinessStore();
-
-  const getEmployeeColor = (stylistId: string) => {
-    const employee = employees.find(emp => emp.id === stylistId);
-    return employee?.color || getStylistColor(stylistId);
-  };
-
-  const getServiceDetails = (serviceId?: string) => {
-    if (!serviceId) return null;
-    return services.find(service => service.id === serviceId);
-  };
-
   return (
     <div 
       className="absolute inset-0 z-10 flex"
       style={{ marginLeft: `${timeColumnWidth}px` }}
     >
       {dates.map((date) => {
-        const dayAppointments = appointments.filter(apt => isSameDay(apt.date, date));
+        const dayAppointments = appointments;
         const columnInfo = calculateAppointmentColumns(dayAppointments);
         const columnWidth = 100 / dates.length;
 
@@ -69,37 +42,16 @@ export const AppointmentGrid = ({
               minWidth: `${columnWidth}%` 
             }}
           >
-            {dayAppointments.map((apt) => {
-              const position = calculateAppointmentPosition(
-                apt,
-                columnInfo,
-                startHour,
-                hourHeight,
-                pageMarginPercent
-              );
-
-              const serviceDetails = getServiceDetails(apt.serviceId);
-
-              return (
-                <AppointmentModal
-                  key={apt.id}
-                  currentDate={date}
-                  appointment={apt}
-                  onAppointmentEdit={onAppointmentEdit}
-                  onAppointmentDelete={onAppointmentDelete}
-                  services={services}
-                  trigger={
-                    <AppointmentCard
-                      appointment={apt}
-                      position={position}
-                      colorClass={getEmployeeColor(apt.stylist)}
-                      serviceIcon={serviceDetails?.icon}
-                      onClick={() => {}}
-                    />
-                  }
-                />
-              );
-            })}
+            <AppointmentGridColumn
+              date={date}
+              appointments={appointments}
+              columnInfo={columnInfo}
+              startHour={startHour}
+              hourHeight={hourHeight}
+              pageMarginPercent={pageMarginPercent}
+              onAppointmentEdit={onAppointmentEdit}
+              onAppointmentDelete={onAppointmentDelete}
+            />
           </div>
         );
       })}
