@@ -1,5 +1,5 @@
 import { useRef } from "react";
-import { addDays } from "date-fns"; // Add this import
+import { addDays } from "date-fns";
 import { TimeGrid } from "./TimeGrid";
 import { AppointmentGrid } from "./AppointmentGrid";
 import { AppointmentModal } from "./AppointmentModal";
@@ -94,10 +94,11 @@ export const TimelineView = ({
     <TimelineContainer
       scrollRef={scrollContainerRef}
       onDoubleClick={handleDoubleClick}
+      className="scrollbar-hide"
     >
       {mode === 'week' && <WeekHeader dates={dates} timeColumnWidth={TIME_COLUMN_WIDTH} />}
 
-      <div className="relative flex flex-1">
+      <div className="relative flex flex-1 scrollbar-hide">
         <TimeGrid 
           hours={hours}
           startHour={START_HOUR}

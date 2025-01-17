@@ -24,7 +24,6 @@ export const AppointmentCard = ({
   serviceIcon,
   onClick,
 }: AppointmentCardProps) => {
-  // Convert hex color to RGB for opacity handling
   const hexToRgb = (hex: string) => {
     const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
     return result ? {
@@ -34,22 +33,16 @@ export const AppointmentCard = ({
     } : null;
   };
 
-  // Default color for 'Anyone'
   const defaultColor = '#6557FF';
-  
-  // Get the base color (either from props or default)
   const baseColor = colorClass.startsWith('#') ? colorClass : defaultColor;
-  
-  // Convert to RGB and add opacity
   const rgbColor = hexToRgb(baseColor);
   const backgroundStyle = rgbColor 
     ? { 
         backgroundColor: `rgba(${rgbColor.r}, ${rgbColor.g}, ${rgbColor.b}, 0.4)`,
-        borderColor: baseColor, // Solid border color
+        borderColor: baseColor,
       }
     : {};
 
-  // Import icons dynamically based on the serviceIcon prop
   const getServiceIcon = () => {
     switch (serviceIcon) {
       case 'scissors':
@@ -65,7 +58,7 @@ export const AppointmentCard = ({
 
   return (
     <div
-      className="absolute rounded-lg px-2 py-1 cursor-pointer transition-colors hover:opacity-90 border-2"
+      className="absolute rounded-lg px-2 py-1 cursor-pointer transition-colors hover:opacity-90 border-2 overflow-hidden"
       style={{
         ...backgroundStyle,
         top: `${position.top}px`,
@@ -75,15 +68,15 @@ export const AppointmentCard = ({
       }}
       onClick={onClick}
     >
-      <div className="flex items-center gap-1">
+      <div className="flex items-center gap-1 truncate">
         {serviceIcon && (
-          <span className="text-foreground">
+          <span className="text-foreground flex-shrink-0">
             {getServiceIcon()}
           </span>
         )}
-        <span className="font-medium text-foreground text-sm">{appointment.title}</span>
+        <span className="font-medium text-foreground text-sm truncate">{appointment.title}</span>
       </div>
-      <div className="text-xs text-foreground/90">
+      <div className="text-xs text-foreground/90 truncate">
         {appointment.time} ({appointment.duration} min)
       </div>
     </div>
