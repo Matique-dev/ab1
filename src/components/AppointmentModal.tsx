@@ -10,17 +10,9 @@ import { useState, useEffect } from "react";
 import { useAppointmentForm } from "@/hooks/useAppointmentForm";
 import { useAppointmentModal } from "@/hooks/useAppointmentModal";
 import { AppointmentModalContent } from "./AppointmentModalContent";
-import { format } from "date-fns";
-import { isWithinBusinessHours } from "@/utils/timeUtils";
-import { useBusinessStore } from "@/hooks/useBusinessStore";
-import { useToast } from "@/hooks/use-toast";
+import { useAppointmentValidation } from "@/hooks/useAppointmentValidation";
 import { useNotificationStore } from "@/stores/notificationStore";
-import {
-  isWithinBusinessHours as validateBusinessHours,
-  isWithinExceptionHours,
-  isEmployeeAvailable,
-  hasSchedulingConflicts
-} from "@/utils/appointmentValidation";
+import { AvailableEmployeesProvider } from "./appointment/AvailableEmployeesProvider";
 
 interface Appointment {
   id?: string;
@@ -58,8 +50,6 @@ export const AppointmentModal = ({
   const [internalIsOpen, setInternalIsOpen] = useState(false);
   const isOpen = controlledIsOpen ?? internalIsOpen;
   const onOpenChange = controlledOnOpenChange ?? setInternalIsOpen;
-  const { toast } = useToast();
-  const { addNotification } = useNotificationStore();
   
   const { formData, setFormData } = useAppointmentForm(currentDate, appointment, isOpen);
   const { handleSubmit, handleDelete } = useAppointmentModal({
@@ -68,13 +58,8 @@ export const AppointmentModal = ({
     onAppointmentDelete,
     onOpenChange,
   });
-
-  const { 
-    employees = [], 
-    services = [], 
-    businessHours,
-    exceptionDates = [] 
-  } = useBusinessStore();
+  const { validateAppointment } = useAppointmentValidation();
+  const { addNotification } = useNotificationStore();
 
   useEffect(() => {
     if (isOpen && defaultTime) {
@@ -82,73 +67,13 @@ export const AppointmentModal = ({
     }
   }, [isOpen, defaultTime, setFormData]);
 
-  const validateAppointment = () => {
-    const appointmentDate = new Date(formData.selectedDate);
-    
-    // Check business hours
-    const businessHoursCheck = validateBusinessHours(
-      appointmentDate,
-      formData.time,
-      formData.duration,
-      businessHours
-    );
-    if (!businessHoursCheck.isValid) {
-      toast({
-        title: "Invalid Time",
-        description: businessHoursCheck.message,
-        variant: "destructive",
-      });
-      return false;
-    }
-
-    // Check exception dates
-    const exceptionCheck = isWithinExceptionHours(
-      appointmentDate,
-      formData.time,
-      formData.duration,
-      exceptionDates
-    );
-    if (!exceptionCheck.isValid) {
-      toast({
-        title: "Invalid Date",
-        description: exceptionCheck.message,
-        variant: "destructive",
-      });
-      return false;
-    }
-
-    // Check employee availability if specific stylist selected
-    if (formData.stylist !== "anyone") {
-      const employee = employees.find(emp => emp.id === formData.stylist);
-      if (employee) {
-        const availabilityCheck = isEmployeeAvailable(
-          appointmentDate,
-          formData.time,
-          formData.duration,
-          employee
-        );
-        if (!availabilityCheck.isValid) {
-          toast({
-            title: "Stylist Unavailable",
-            description: availabilityCheck.message,
-            variant: "destructive",
-          });
-          return false;
-        }
-      }
-    }
-
-    return true;
-  };
-
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!validateAppointment()) {
+    if (!validateAppointment(formData)) {
       return;
     }
 
-    // Create appointment and add notification
     handleSubmit(formData, appointment);
     addNotification({
       type: "business_hours",
@@ -156,39 +81,6 @@ export const AppointmentModal = ({
       appointmentId: appointment?.id || "new",
     });
   };
-
-  const getAvailableEmployees = () => {
-    const dayOfWeek = format(currentDate, 'EEEE').toLowerCase();
-    const currentTime = formData.time;
-
-    // Check for exception dates
-    const exceptionDate = exceptionDates.find(ex => 
-      format(ex.date, 'yyyy-MM-dd') === format(currentDate, 'yyyy-MM-dd')
-    );
-
-    if (exceptionDate?.isAllDayOff) {
-      return [];
-    }
-
-    return employees.filter(employee => {
-      const schedule = employee.schedule[dayOfWeek];
-      if (!schedule.isAvailable) return false;
-
-      // Check if within business hours
-      if (businessHours && !isWithinBusinessHours(
-        currentTime,
-        exceptionDate?.openTime || businessHours[dayOfWeek].openTime,
-        exceptionDate?.closeTime || businessHours[dayOfWeek].closeTime
-      )) {
-        return false;
-      }
-
-      // Check employee availability
-      return isWithinBusinessHours(currentTime, schedule.workStart, schedule.workEnd);
-    });
-  };
-
-  const availableEmployees = getAvailableEmployees();
 
   const onDelete = () => {
     if (appointment?.id) {
@@ -216,15 +108,22 @@ export const AppointmentModal = ({
             {appointment ? "Edit Appointment" : "Schedule Appointment"}
           </DialogTitle>
         </DialogHeader>
-        <AppointmentModalContent
-          formData={formData}
-          setFormData={setFormData}
-          onSubmit={onSubmit}
-          onDelete={appointment ? onDelete : undefined}
-          appointment={appointment}
-          availableEmployees={availableEmployees}
-          services={services}
-        />
+        <AvailableEmployeesProvider
+          currentDate={currentDate}
+          currentTime={formData.time}
+        >
+          {(availableEmployees) => (
+            <AppointmentModalContent
+              formData={formData}
+              setFormData={setFormData}
+              onSubmit={onSubmit}
+              onDelete={appointment ? onDelete : undefined}
+              appointment={appointment}
+              availableEmployees={availableEmployees}
+              services={[]}
+            />
+          )}
+        </AvailableEmployeesProvider>
       </DialogContent>
     </Dialog>
   );
