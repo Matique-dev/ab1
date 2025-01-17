@@ -4,6 +4,7 @@ import { format, addMinutes, isBefore, isAfter, parseISO } from "date-fns";
 interface ValidationResult {
   isValid: boolean;
   message?: string;
+  hasException?: boolean;
 }
 
 // Check if time is within business hours
@@ -19,7 +20,8 @@ export const isWithinBusinessHours = (
   if (!daySchedule.isOpen) {
     return { 
       isValid: false, 
-      message: "Business is closed on this day" 
+      message: "Business is closed on this day",
+      hasException: false
     };
   }
 
@@ -37,11 +39,12 @@ export const isWithinBusinessHours = (
   if (appointmentStart < businessOpen || appointmentEnd.getTime() > businessClose) {
     return {
       isValid: false,
-      message: "Appointment must be within business hours"
+      message: "Appointment must be within business hours",
+      hasException: false
     };
   }
 
-  return { isValid: true };
+  return { isValid: true, hasException: false };
 };
 
 // Check if time is within exception dates
@@ -61,13 +64,14 @@ export const isWithinExceptionHours = (
   );
 
   if (!exceptionDate) {
-    return { isValid: true };
+    return { isValid: true, hasException: false };
   }
 
   if (exceptionDate.isAllDayOff) {
     return {
       isValid: false,
-      message: "Business is closed on this day due to special hours"
+      message: "Business is closed on this day due to special hours",
+      hasException: true
     };
   }
 
@@ -85,15 +89,15 @@ export const isWithinExceptionHours = (
     if (appointmentStart < exceptionOpen || appointmentEnd.getTime() > exceptionClose) {
       return {
         isValid: false,
-        message: "Appointment must be within special business hours"
+        message: "Appointment must be within special business hours",
+        hasException: true
       };
     }
   }
 
-  return { isValid: true };
+  return { isValid: true, hasException: true };
 };
 
-// Check employee availability
 export const isEmployeeAvailable = (
   date: Date,
   time: string,

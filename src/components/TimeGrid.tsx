@@ -1,3 +1,4 @@
+import React from 'react';
 import { format } from "date-fns";
 import { useBusinessStore } from "@/hooks/useBusinessStore";
 import { isWithinBusinessHours, isWithinExceptionHours } from "@/utils/appointmentValidation";
