@@ -59,8 +59,11 @@ export const AppointmentGrid = ({
         return (
           <div 
             key={date.toString()} 
-            className="relative flex-1"
-            style={{ minWidth: `${columnWidth}%` }}
+            className="relative"
+            style={{ 
+              width: `${columnWidth}%`,
+              minWidth: `${columnWidth}%` 
+            }}
           >
             {dayAppointments.map((apt) => {
               const position = calculateAppointmentPosition(

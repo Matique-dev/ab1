@@ -25,11 +25,12 @@ export const TimeGrid = ({ hours, startHour, hourHeight, mode = 'day', dates = [
       exceptionDates
     );
 
-    if (!exceptionCheck.isValid) {
-      return false;
+    // If there's an exception, use its result
+    if (exceptionCheck.hasException) {
+      return exceptionCheck.isValid;
     }
 
-    // Then check regular business hours
+    // Otherwise, check regular business hours
     const businessHoursCheck = isWithinBusinessHours(
       date,
       time,
@@ -44,7 +45,7 @@ export const TimeGrid = ({ hours, startHour, hourHeight, mode = 'day', dates = [
     <>
       {/* Column headers for week view */}
       {mode === 'week' && dates.length > 0 && (
-        <div className="absolute top-0 left-16 right-0 flex border-b border-gray-200 bg-white z-20">
+        <div className="sticky top-0 left-16 right-0 flex border-b border-gray-200 bg-white z-20 pt-4">
           {dates.map((date, index) => (
             <div
               key={date.toString()}
@@ -62,32 +63,32 @@ export const TimeGrid = ({ hours, startHour, hourHeight, mode = 'day', dates = [
           // Week view - create grid for each day
           <div className="flex h-full">
             {dates.map((date, dateIndex) => (
-              <div key={date.toString()} className="flex-1">
+              <div 
+                key={date.toString()} 
+                className="flex-1 relative"
+                style={{ width: `${100/7}%` }}
+              >
                 {hours.map((hour) => (
-                  <>
+                  <React.Fragment key={`${date}-${hour}`}>
                     {/* Full hour line with non-business hours styling */}
                     <div 
-                      key={`grid-${hour}-${dateIndex}`}
-                      className={`absolute w-[calc(100%/7)] border-t border-gray-200 ${
+                      className={`absolute w-full border-t border-gray-200 ${
                         !isHourAvailable(hour, date) ? 
                         'bg-[linear-gradient(135deg,transparent_46%,#e5e7eb_49%,#e5e7eb_51%,transparent_55%)] bg-[length:10px_10px]' : ''
                       }`}
                       style={{ 
                         top: `${(hour - startHour) * hourHeight}px`,
                         height: `${hourHeight}px`,
-                        left: `${(dateIndex * 100) / 7}%`
                       }}
                     />
                     {/* Half hour line */}
                     <div 
-                      key={`grid-${hour}-30-${dateIndex}`}
-                      className="absolute w-[calc(100%/7)] border-t border-gray-200 opacity-50"
+                      className="absolute w-full border-t border-gray-200 opacity-50"
                       style={{ 
                         top: `${(hour - startHour) * hourHeight + hourHeight/2}px`,
-                        left: `${(dateIndex * 100) / 7}%`
                       }}
                     />
-                  </>
+                  </React.Fragment>
                 ))}
               </div>
             ))}
@@ -96,10 +97,9 @@ export const TimeGrid = ({ hours, startHour, hourHeight, mode = 'day', dates = [
           // Day view - single column
           <>
             {hours.map((hour) => (
-              <>
+              <React.Fragment key={hour}>
                 {/* Full hour line with non-business hours styling */}
                 <div 
-                  key={`grid-${hour}`}
                   className={`absolute w-full border-t border-gray-200 ${
                     !isHourAvailable(hour, dates[0]) ? 
                     'bg-[linear-gradient(135deg,transparent_46%,#e5e7eb_49%,#e5e7eb_51%,transparent_55%)] bg-[length:10px_10px]' : ''
@@ -111,11 +111,10 @@ export const TimeGrid = ({ hours, startHour, hourHeight, mode = 'day', dates = [
                 />
                 {/* Half hour line */}
                 <div 
-                  key={`grid-${hour}-30`}
                   className="absolute w-full border-t border-gray-200 opacity-50"
                   style={{ top: `${(hour - startHour) * hourHeight + hourHeight/2}px` }}
                 />
-              </>
+              </React.Fragment>
             ))}
           </>
         )}
