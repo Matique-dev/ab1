@@ -14,6 +14,7 @@ interface Appointment {
   duration: string;
   isWalkIn: boolean;
   date: Date;
+  serviceId?: string;
 }
 
 export const useAppointmentValidation = () => {

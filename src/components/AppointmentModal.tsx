@@ -16,6 +16,7 @@ interface Appointment {
   duration: string;
   isWalkIn: boolean;
   date: Date;
+  serviceId?: string;
 }
 
 interface AppointmentModalProps {
@@ -66,10 +67,6 @@ export const AppointmentModal = ({
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!validateAppointment(formData)) {
-      return;
-    }
-
     // Create a Date object from the selected date and time
     const [hours, minutes] = formData.time.split(':').map(Number);
     const appointmentDate = new Date(formData.selectedDate);
@@ -85,6 +82,10 @@ export const AppointmentModal = ({
       date: appointmentDate,
       serviceId: formData.serviceId,
     };
+
+    if (!validateAppointment(appointmentData)) {
+      return;
+    }
 
     handleSubmit(appointmentData, appointment);
     addNotification({
