@@ -114,7 +114,6 @@ export const EmployeeHeader = ({
             size="icon"
             onClick={onRemove}
             className="text-destructive hover:text-destructive"
-            disabled={id === "manager"}
           >
             <Trash2 className="w-4 h-4" />
           </Button>
