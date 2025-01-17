@@ -1,3 +1,19 @@
+/**
+ * TimelineView component displays appointments in a timeline format.
+ * Supports day and week views with appointment creation and management.
+ * 
+ * @component
+ * @example
+ * ```tsx
+ * <TimelineView
+ *   date={new Date()}
+ *   appointments={appointments}
+ *   mode="day"
+ *   onAppointmentEdit={(apt) => handleEdit(apt)}
+ *   onAppointmentDelete={(id) => handleDelete(id)}
+ * />
+ * ```
+ */
 import { useRef } from "react";
 import { TimelineContainer } from "./timeline/TimelineContainer";
 import { WeekHeader } from "./timeline/WeekHeader";
@@ -11,10 +27,15 @@ import { useTimelineConfig } from "@/hooks/useTimelineConfig";
 import { Appointment } from "@/types/appointment";
 
 interface TimelineViewProps {
+  /** Current date to display */
   date: Date;
+  /** List of appointments to display */
   appointments: Appointment[];
+  /** View mode - either day or week */
   mode: 'day' | 'week';
+  /** Callback when an appointment is edited */
   onAppointmentEdit: (appointment: Appointment) => void;
+  /** Callback when an appointment is deleted */
   onAppointmentDelete: (appointmentId: string) => void;
 }
 
