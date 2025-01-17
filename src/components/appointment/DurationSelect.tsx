@@ -1,7 +1,5 @@
-import React from "react";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
 
 interface DurationSelectProps {
   duration: string;
@@ -13,8 +11,8 @@ export const DurationSelect = ({
   onDurationChange,
 }: DurationSelectProps) => {
   return (
-    <div className="space-y-2">
-      <Label htmlFor="duration">Duration (minutes)</Label>
+    <div className="flex items-center gap-4">
+      <Label htmlFor="duration" className="flex-shrink-0">Duration</Label>
       <Select
         value={duration}
         onValueChange={onDurationChange}

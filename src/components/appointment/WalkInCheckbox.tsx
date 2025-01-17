@@ -1,3 +1,4 @@
+import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 
 interface WalkInCheckboxProps {
@@ -8,12 +9,10 @@ interface WalkInCheckboxProps {
 export const WalkInCheckbox = ({ checked, onChange }: WalkInCheckboxProps) => {
   return (
     <div className="flex items-center space-x-2">
-      <input
-        type="checkbox"
+      <Switch
         id="walkIn"
         checked={checked}
-        onChange={(e) => onChange(e.target.checked)}
-        className="rounded border-gray-300"
+        onCheckedChange={onChange}
       />
       <Label htmlFor="walkIn">Walk-in appointment</Label>
     </div>

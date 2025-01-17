@@ -6,6 +6,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { PlusCircle } from "lucide-react";
 
 interface AppointmentModalWrapperProps {
   isOpen: boolean;
@@ -33,7 +34,10 @@ export const AppointmentModalWrapper = ({
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>{title}</DialogTitle>
+          <DialogTitle className="flex items-center gap-2">
+            <PlusCircle className="h-5 w-5" />
+            {title}
+          </DialogTitle>
         </DialogHeader>
         {children}
       </DialogContent>
