@@ -5,7 +5,10 @@ import { DayView } from "@/components/DayView";
 import { WeekView } from "@/components/WeekView";
 import { MonthView } from "@/components/MonthView";
 import { fr } from "date-fns/locale";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
+import { useNotificationStore } from "@/stores/notificationStore";
+import { useBusinessStore } from "@/hooks/useBusinessStore";
+import { isWithinBusinessHours, isWithinExceptionHours, isEmployeeAvailable } from "@/utils/appointmentValidation";
 
 interface Appointment {
   id: string;
@@ -23,8 +26,71 @@ const Index = () => {
   const [view, setView] = useState<"day" | "week" | "month">("day");
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const { toast } = useToast();
+  const { addNotification } = useNotificationStore();
+  const { businessHours, exceptionDates, employees } = useBusinessStore();
+
+  const validateAppointment = (appointment: Omit<Appointment, "id">) => {
+    // Check business hours
+    const businessHoursCheck = isWithinBusinessHours(
+      appointment.date,
+      appointment.time,
+      appointment.duration,
+      businessHours
+    );
+    if (!businessHoursCheck.isValid) {
+      toast({
+        title: "Invalid appointment time",
+        description: businessHoursCheck.message,
+        variant: "destructive",
+      });
+      return false;
+    }
+
+    // Check exception dates
+    const exceptionCheck = isWithinExceptionHours(
+      appointment.date,
+      appointment.time,
+      appointment.duration,
+      exceptionDates
+    );
+    if (!exceptionCheck.isValid) {
+      toast({
+        title: "Invalid appointment date",
+        description: exceptionCheck.message,
+        variant: "destructive",
+      });
+      return false;
+    }
+
+    // Check employee availability if specific stylist selected
+    if (appointment.stylist !== "anyone") {
+      const employee = employees.find(emp => emp.id === appointment.stylist);
+      if (employee) {
+        const availabilityCheck = isEmployeeAvailable(
+          appointment.date,
+          appointment.time,
+          appointment.duration,
+          employee
+        );
+        if (!availabilityCheck.isValid) {
+          addNotification({
+            type: "employee_availability",
+            message: availabilityCheck.message || "Employee is not available at this time",
+            appointmentId: "new",
+          });
+          return false;
+        }
+      }
+    }
+
+    return true;
+  };
 
   const handleAppointmentCreate = (appointment: Omit<Appointment, "id">) => {
+    if (!validateAppointment(appointment)) {
+      return;
+    }
+
     const newAppointment = {
       ...appointment,
       id: Math.random().toString(36).substr(2, 9),
@@ -37,20 +103,21 @@ const Index = () => {
   };
 
   const handleAppointmentEdit = (updatedAppointment: Appointment) => {
+    if (!validateAppointment(updatedAppointment)) {
+      return;
+    }
+
     setAppointments(prevAppointments => {
       const existingAppointment = prevAppointments.find(
         apt => apt.id === updatedAppointment.id
       );
 
       if (existingAppointment) {
-        // Update existing appointment
         return prevAppointments.map(apt =>
           apt.id === updatedAppointment.id ? updatedAppointment : apt
         );
-      } else {
-        // Add new appointment
-        return [...prevAppointments, updatedAppointment];
       }
+      return [...prevAppointments, updatedAppointment];
     });
 
     toast({
