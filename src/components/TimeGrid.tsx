@@ -1,4 +1,5 @@
 import { format } from "date-fns";
+import { useBusinessStore } from "@/hooks/useBusinessStore";
 
 interface TimeGridProps {
   hours: number[];
@@ -9,6 +10,17 @@ interface TimeGridProps {
 }
 
 export const TimeGrid = ({ hours, startHour, hourHeight, mode = 'day', dates = [] }: TimeGridProps) => {
+  const { businessHours } = useBusinessStore();
+  const dayOfWeek = format(dates[0], 'EEEE').toLowerCase();
+  const { openTime, closeTime } = businessHours[dayOfWeek];
+  
+  const [openHour] = openTime.split(':').map(Number);
+  const [closeHour] = closeTime.split(':').map(Number);
+
+  const isBusinessHour = (hour: number) => {
+    return hour >= openHour && hour < closeHour;
+  };
+
   return (
     <>
       {/* Column headers for week view */}
@@ -29,11 +41,16 @@ export const TimeGrid = ({ hours, startHour, hourHeight, mode = 'day', dates = [
       <div className="absolute inset-0 z-0">
         {hours.map((hour) => (
           <>
-            {/* Full hour line */}
+            {/* Full hour line with non-business hours styling */}
             <div 
               key={`grid-${hour}`}
-              className="absolute w-full border-t border-gray-200"
-              style={{ top: `${(hour - startHour) * hourHeight}px` }}
+              className={`absolute w-full border-t border-gray-200 ${
+                !isBusinessHour(hour) ? 'bg-[linear-gradient(45deg,transparent_46%,#aaadb0_49%,#aaadb0_51%,transparent_55%)] bg-[length:10px_10px]' : ''
+              }`}
+              style={{ 
+                top: `${(hour - startHour) * hourHeight}px`,
+                height: `${hourHeight}px`
+              }}
             />
             {/* Half hour line */}
             <div 
