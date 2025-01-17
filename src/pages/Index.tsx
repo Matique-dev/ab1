@@ -27,7 +27,7 @@ const Index = () => {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const { toast } = useToast();
   const { addNotification } = useNotificationStore();
-  const { businessHours, exceptionDates, employees } = useBusinessStore();
+  const { businessHours, exceptionDates, employees, services } = useBusinessStore();
 
   const validateAppointment = (appointment: Omit<Appointment, "id">) => {
     // Check business hours
@@ -147,6 +147,7 @@ const Index = () => {
             <AppointmentModal 
               onAppointmentCreate={handleAppointmentCreate}
               currentDate={currentDate}
+              services={services}
             />
           </div>
           <CalendarHeader
