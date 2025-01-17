@@ -1,12 +1,7 @@
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useNotificationStore } from "@/stores/notificationStore";
-import { useBusinessStore } from "@/hooks/useBusinessStore";
-import { 
-  isWithinBusinessHours, 
-  isWithinExceptionHours, 
-  isEmployeeAvailable 
-} from "@/utils/appointmentValidation";
+import { useAppointmentValidation } from "./useAppointmentValidation";
 
 interface Appointment {
   id: string;
@@ -23,61 +18,7 @@ export const useAppointments = () => {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const { toast } = useToast();
   const { addNotification } = useNotificationStore();
-  const { businessHours, exceptionDates, employees } = useBusinessStore();
-
-  const validateAppointment = (appointment: Omit<Appointment, "id">) => {
-    const businessHoursCheck = isWithinBusinessHours(
-      appointment.date,
-      appointment.time,
-      appointment.duration,
-      businessHours
-    );
-    if (!businessHoursCheck.isValid) {
-      toast({
-        title: "Invalid appointment time",
-        description: businessHoursCheck.message,
-        variant: "destructive",
-      });
-      return false;
-    }
-
-    const exceptionCheck = isWithinExceptionHours(
-      appointment.date,
-      appointment.time,
-      appointment.duration,
-      exceptionDates
-    );
-    if (!exceptionCheck.isValid) {
-      toast({
-        title: "Invalid appointment date",
-        description: exceptionCheck.message,
-        variant: "destructive",
-      });
-      return false;
-    }
-
-    if (appointment.stylist !== "anyone") {
-      const employee = employees.find(emp => emp.id === appointment.stylist);
-      if (employee) {
-        const availabilityCheck = isEmployeeAvailable(
-          appointment.date,
-          appointment.time,
-          appointment.duration,
-          employee
-        );
-        if (!availabilityCheck.isValid) {
-          addNotification({
-            type: "employee_availability",
-            message: availabilityCheck.message || "Employee is not available at this time",
-            appointmentId: "new",
-          });
-          return false;
-        }
-      }
-    }
-
-    return true;
-  };
+  const { validateAppointment } = useAppointmentValidation();
 
   const handleAppointmentCreate = (appointment: Omit<Appointment, "id">) => {
     if (!validateAppointment(appointment)) {
@@ -88,6 +29,7 @@ export const useAppointments = () => {
       ...appointment,
       id: Math.random().toString(36).substr(2, 9),
     };
+    
     setAppointments(prev => [...prev, newAppointment]);
     toast({
       title: "Appointment created",
