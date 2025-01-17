@@ -49,7 +49,12 @@ const Index = () => {
             />
           )}
           {view === "week" && (
-            <WeekView date={currentDate} appointments={appointments} />
+            <WeekView 
+              date={currentDate} 
+              appointments={appointments}
+              onAppointmentEdit={handleAppointmentEdit}
+              onAppointmentDelete={handleAppointmentDelete}
+            />
           )}
           {view === "month" && (
             <MonthView date={currentDate} appointments={appointments} />
