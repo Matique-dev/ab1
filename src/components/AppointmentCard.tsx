@@ -21,8 +21,7 @@ interface AppointmentCardProps {
 enum InteractionState {
   IDLE,
   PENDING,
-  DRAGGING,
-  RESIZING
+  DRAGGING
 }
 
 export const AppointmentCard = ({
@@ -35,9 +34,10 @@ export const AppointmentCard = ({
   const [interactionState, setInteractionState] = useState<InteractionState>(InteractionState.IDLE);
   const [isDragging, setIsDragging] = useState(false);
   const pressTimerRef = useRef<number>();
+  const clickCountRef = useRef(0);
+  const clickTimeoutRef = useRef<number>();
   const cardRef = useRef<HTMLDivElement>(null);
 
-  // Convert hex color to RGB for opacity handling
   const hexToRgb = (hex: string) => {
     const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
     return result ? {
@@ -52,10 +52,25 @@ export const AppointmentCard = ({
     return Math.round(minutes / interval) * interval;
   };
 
+  const handleClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    clickCountRef.current += 1;
+
+    if (clickCountRef.current === 1) {
+      clickTimeoutRef.current = window.setTimeout(() => {
+        clickCountRef.current = 0; // Reset after timeout
+      }, 300);
+    } else if (clickCountRef.current === 2) {
+      clearTimeout(clickTimeoutRef.current);
+      clickCountRef.current = 0;
+      onClick(); // Handle double click - open edit popup
+    }
+  };
+
   const handleMouseDown = (e: React.MouseEvent) => {
     e.preventDefault();
     
-    // Start long press timer
+    // Start long press timer for drag
     pressTimerRef.current = window.setTimeout(() => {
       setInteractionState(InteractionState.DRAGGING);
       setIsDragging(true);
@@ -70,7 +85,7 @@ export const AppointmentCard = ({
     }
 
     if (interactionState === InteractionState.PENDING) {
-      onClick(); // Handle click/double-click
+      handleClick(new MouseEvent('click') as unknown as React.MouseEvent);
     }
 
     setInteractionState(InteractionState.IDLE);
@@ -81,7 +96,6 @@ export const AppointmentCard = ({
     if (interactionState !== InteractionState.DRAGGING) return;
 
     if (cardRef.current) {
-      const rect = cardRef.current.getBoundingClientRect();
       const gridRect = cardRef.current.parentElement?.getBoundingClientRect();
       
       if (gridRect) {
@@ -101,6 +115,9 @@ export const AppointmentCard = ({
     return () => {
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('mouseup', handleMouseUp);
+      if (clickTimeoutRef.current) {
+        clearTimeout(clickTimeoutRef.current);
+      }
     };
   }, [interactionState]);
 
@@ -114,7 +131,7 @@ export const AppointmentCard = ({
         backgroundColor: `rgba(${rgbColor.r}, ${rgbColor.g}, ${rgbColor.b}, 0.4)`,
         borderColor: baseColor,
         boxShadow: isDragging ? '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1)' : 'none',
-        cursor: isDragging ? 'grabbing' : 'grab',
+        cursor: isDragging ? 'grabbing' : 'default',
         ...position,
       }
     : position;
