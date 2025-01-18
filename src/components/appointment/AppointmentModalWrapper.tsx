@@ -26,11 +26,7 @@ export const AppointmentModalWrapper = ({
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogTrigger asChild>
-        {trigger || (
-          <Button className="bg-gradient-to-r from-salon-pink to-salon-peach hover:opacity-90">
-            New Appointment
-          </Button>
-        )}
+        {trigger}
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>

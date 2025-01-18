@@ -23,7 +23,7 @@ export const TimelineModal = ({
     <AppointmentModal
       onAppointmentCreate={onAppointmentCreate}
       currentDate={selectedDate}
-      trigger={<></>}
+      trigger={null}
       isOpen={isOpen}
       onOpenChange={setIsModalOpen}
       defaultTime={selectedTime}
