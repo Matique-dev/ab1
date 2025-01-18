@@ -8,6 +8,7 @@ import { fr } from "date-fns/locale";
 import { useBusinessStore } from "@/hooks/useBusinessStore";
 import { useAppointments } from "@/hooks/useAppointments";
 import { CALENDAR_TRANSLATIONS } from "@/constants/translations";
+import { Button } from "@/components/ui/button";
 
 const Index = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -32,6 +33,11 @@ const Index = () => {
               onAppointmentCreate={handleAppointmentCreate}
               currentDate={currentDate}
               services={services}
+              trigger={
+                <Button className="bg-gradient-to-r from-salon-pink to-salon-peach hover:opacity-90">
+                  New Appointment
+                </Button>
+              }
             />
           </div>
           <CalendarHeader
