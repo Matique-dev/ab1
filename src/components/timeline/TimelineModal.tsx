@@ -19,6 +19,8 @@ export const TimelineModal = ({
   services,
   onAppointmentCreate,
 }: TimelineModalProps) => {
+  if (!selectedDate) return null;
+
   return (
     <AppointmentModal
       onAppointmentCreate={onAppointmentCreate}
