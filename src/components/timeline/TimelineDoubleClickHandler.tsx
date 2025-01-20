@@ -29,11 +29,6 @@ export const TimelineDoubleClickHandler = ({
   children,
 }: TimelineDoubleClickHandlerProps) => {
   const handleDoubleClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    // Ignore if clicking on an appointment card
-    if ((e.target as HTMLElement).closest('.appointment-card')) {
-      return;
-    }
-
     const container = scrollContainerRef.current;
     if (!container) return;
 
